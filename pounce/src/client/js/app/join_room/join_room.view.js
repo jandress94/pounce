@@ -71,6 +71,16 @@ join_room.view = (function () {
         name_div.appendChild(welcome_h2);
         welcome_h2.appendChild(document.createTextNode('Welcome ' + app.model.get_name()));
 
+        let start_game_div = document.createElement('div');
+        welcome_div.appendChild(start_game_div);
+
+        let start_game_button = document.createElement('button');
+        start_game_div.appendChild(start_game_button);
+        start_game_button.appendChild(document.createTextNode('Start Game'));
+        $(start_game_button).click(function () {
+            join_room.controller.handle_start_game();
+        });
+
         update_player_list(welcome_div);
     };
 

@@ -7,8 +7,9 @@ const app = (function () {
 
         room_creator.init_module($container, socket);
         join_room.init_module($container, socket);
+        game.init_module($container, socket);
 
-        let room_id = window.location.href.match(/room\/([a-z0-9]{5})/);
+        let room_id = window.location.href.match(/room\/([a-z0-9]+)/);
 
         if (room_id !== null) {
             console.log('room id is', room_id[1]);

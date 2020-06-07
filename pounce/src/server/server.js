@@ -6,17 +6,20 @@ var io = require('socket.io')(http, {
   pingTimeout: 60000,
 });
 var shuffle = require('shuffle-array');
+var cards = require('../shared/js/cards');
 
-// var cards = require('../shared/js/cards');
-// var d = new cards.Deck();
-// shuffle(d.cards);
+
+const DEBUG = true;
+
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-const open_rooms = [];
 const room_id_to_sockets = {};
+if (DEBUG) {
+    room_id_to_sockets['testroom'] = [];
+}
 
 app.use('/js/shared', express.static(path.resolve(__dirname + '/../shared/js')));
 app.use('/js/client', express.static(path.resolve(__dirname + '/../client/js')));
@@ -43,7 +46,7 @@ app.get("/", function (request, response) {
 app.get("/room/:room_id", function(request, response) {
     const room_id = request.params.room_id;
     console.log('User trying to enter room', room_id);
-    if (open_rooms.includes(room_id)) {
+    if (room_id_to_sockets.hasOwnProperty(room_id)) {
         response.sendFile(path.resolve(__dirname + '/../client/html/index.html'));
     } else {
         response.sendFile(path.resolve(__dirname + '/../client/html/bad_room.html'));
@@ -56,8 +59,8 @@ http.listen(app.get('port'), function(){
   console.log('listening on port',app.get('port'));
 });
 
-const get_new_room_id = function() {
-    return Math.random().toString(36).substring(2, 7);
+const get_new_room_id = function(id_len = 5) {
+    return Math.random().toString(36).substring(2, 2 + id_len);
 };
 
 const update_player_names = function(room_id) {
@@ -69,6 +72,22 @@ const update_player_names = function(room_id) {
     io.emit('update_players', all_player_names);
 };
 
+const start_hand = function (room_id) {
+    let decks = [];
+    for (let i = 0; i < room_id_to_sockets[room_id].length; i++) {
+        decks.push(new cards.Deck());
+        shuffle(decks[i].cards);
+    }
+
+    for (let i = 0; i < room_id_to_sockets[room_id].length; i++) {
+        room_id_to_sockets[room_id][i].emit('start_hand', decks[i]);
+    }
+};
+
+const start_game = function(room_id) {
+    start_hand(room_id);
+};
+
 // Tell Socket.io to start accepting connections
 io.on('connection', function(socket){
     console.log("New client has connected with id:",socket.id);
@@ -77,7 +96,6 @@ io.on('connection', function(socket){
     socket.on('create_new_room', function(){
         console.log('New Room Request from client with id:', socket.id);
         const room_id = get_new_room_id();
-        open_rooms.push(room_id);
         room_id_to_sockets[room_id] = [];
 
         console.log('New room created with id:', room_id);
@@ -86,7 +104,7 @@ io.on('connection', function(socket){
 
     // Listen for request to join a room
     socket.on('request_room_join', function (room_id) {
-        if (open_rooms.includes(room_id)) {
+        if (room_id_to_sockets.hasOwnProperty(room_id)) {
             socket.room_id = room_id;
             room_id_to_sockets[room_id].push(socket);
             console.log('socket', socket.id, 'joined room', room_id);
@@ -118,6 +136,11 @@ io.on('connection', function(socket){
         socket.emit('accept_name', name);
 
         update_player_names(socket.room_id);
+    });
+
+    socket.on('start_game', function () {
+        console.log('socket', socket.id, 'is requesting to start the game in room', socket.room_id);
+        start_game(socket.room_id);
     });
 
     socket.on('disconnect', function(){
