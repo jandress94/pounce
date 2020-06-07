@@ -2,6 +2,7 @@ app.model = (function () {
 
     let room_id;
     let name;
+    let players;
 
     const init_module = function () {
         clear();
@@ -21,11 +22,20 @@ app.model = (function () {
 
     const get_name = function() {
         return name;
-    }
+    };
+
+    const set_players = function (p) {
+        players = p;
+    };
+
+    const get_players = function() {
+        return players;
+    };
 
     const clear = function () {
         room_id = null;
         name = null;
+        players = null;
     };
 
     return {
@@ -34,6 +44,8 @@ app.model = (function () {
         get_room_id: get_room_id,
         set_name: set_name,
         get_name: get_name,
+        set_players: set_players,
+        get_players: get_players,
         clear: clear
     };
 }());

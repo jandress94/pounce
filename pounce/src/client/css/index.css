@@ -6,6 +6,9 @@ html {
     background-color: #51744f;
     text-align: center;
 }
+ul {
+    list-style-position: inside;
+}
 canvas {
     /* Center the canvas */
     margin: auto;

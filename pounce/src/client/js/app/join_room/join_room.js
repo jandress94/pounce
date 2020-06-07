@@ -28,6 +28,8 @@ const join_room = (function () {
 
         socket.on('update_players', function(player_names) {
             console.log(player_names);
+            app.model.set_players(player_names);
+            join_room.controller.handle_update_players();
         });
     };
 

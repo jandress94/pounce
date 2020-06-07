@@ -90,16 +90,23 @@ join_room.view = (function () {
             player_list_div.appendChild(player_list);
             player_list.id = 'player_list';
         } else {
-            player_list = player_list[1];
+            player_list = player_list[0];
         }
 
-        console.log(player_list);
+        player_list.innerHTML = '';
+
+        for (let i = 0; i < app.model.get_players().length; i++) {
+            let player_li = document.createElement('li');
+            player_list.appendChild(player_li);
+            player_li.appendChild(document.createTextNode(app.model.get_players()[i] || 'Anonymous Player'));
+        }
     };
 
     return {
         init_module: init_module,
         display_joining_room_page: display_joining_room_page,
         display_join_room_page: display_join_room_page,
-        display_welcome: display_welcome
+        display_welcome: display_welcome,
+        update_player_list: update_player_list
     };
 }());
