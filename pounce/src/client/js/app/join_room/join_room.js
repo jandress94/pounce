@@ -25,6 +25,10 @@ const join_room = (function () {
             app.model.set_name(name);
             join_room.controller.display_welcome();
         });
+
+        socket.on('update_players', function(player_names) {
+            console.log(player_names);
+        });
     };
 
     const start = function (room_id) {

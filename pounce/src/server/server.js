@@ -48,6 +48,15 @@ const get_new_room_id = function() {
     return Math.random().toString(36).substring(2, 7);
 };
 
+const update_player_names = function(room_id) {
+    let all_player_names = [];
+    for (let i = 0; i < room_id_to_sockets[room_id].length; i++) {
+        const s = room_id_to_sockets[room_id][i];
+        all_player_names.push(s.hasOwnProperty('player_name') ? s.player_name : null);
+    }
+    io.emit('update_players', all_player_names);
+};
+
 // Tell Socket.io to start accepting connections
 io.on('connection', function(socket){
     console.log("New client has connected with id:",socket.id);
@@ -73,6 +82,8 @@ io.on('connection', function(socket){
             // TODO: remove sleep
             sleep(2000).then(() => {
                 socket.emit('confirm_room_join', room_id);
+
+                update_player_names(room_id);
             });
         }
     });
@@ -93,6 +104,8 @@ io.on('connection', function(socket){
         console.log('accepting the requested name', name, 'for socket', socket.id);
         socket.player_name = name;
         socket.emit('accept_name', name);
+
+        update_player_names(socket.room_id);
     });
 });
 
