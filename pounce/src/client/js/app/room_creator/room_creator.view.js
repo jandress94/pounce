@@ -16,10 +16,6 @@ room_creator.view = (function () {
         let room_creator_div = document.createElement('div');
         $container.append(room_creator_div);
 
-        let title_h1 = document.createElement('h1');
-        room_creator_div.appendChild(title_h1);
-        title_h1.appendChild(document.createTextNode("Jim's Pounce App"));
-
         /*************************************New Room*************************************/
 
         let new_room_div = document.createElement('div');

@@ -2,7 +2,9 @@ var express = require('express'); // Express contains some boilerplate to for ro
 var app = express();
 var path = require('path');
 var http = require('http').Server(app);
-var io = require('socket.io')(http);
+var io = require('socket.io')(http, {
+  pingTimeout: 60000,
+});
 var shuffle = require('shuffle-array');
 
 // var cards = require('../shared/js/cards');
@@ -13,6 +15,7 @@ var shuffle = require('shuffle-array');
 // console.log(d);
 
 const open_rooms = [];
+const socket_id_to_room = {};
 
 app.use('/js/shared', express.static(path.resolve(__dirname + '/../shared/js')));
 app.use('/js/client', express.static(path.resolve(__dirname + '/../client/js')));
@@ -48,12 +51,23 @@ const get_new_room_id = function() {
 io.on('connection', function(socket){
     console.log("New client has connected with id:",socket.id);
 
-    socket.on('create_new_room',function(){ // Listen for a new room request
+    // Listen for a new room request
+    socket.on('create_new_room', function(){
         console.log('New Room Request from client with id:', socket.id);
         const room_id = get_new_room_id();
         open_rooms.push(room_id);
         console.log('New room created with id:', room_id);
         socket.emit('new_room_created', room_id);
     });
+
+    // Listen for request to join a room
+    socket.on('request_room_join', function (room_id) {
+        if (open_rooms.includes(room_id)) {
+            socket_id_to_room[socket.id] = room_id;
+            console.log('socket', socket.id, 'joined room', room_id);
+
+            socket.emit('confirm_room_join', room_id);
+        }
+    })
 });
 

@@ -10,8 +10,21 @@ join_room.view = (function () {
         $container.empty();
     };
 
-    const display_join_room = function() {
+    const display_joining_room_page = function (room_id) {
         clear_container();
+
+        let join_room_div = document.createElement('div');
+        $container.append(join_room_div);
+
+        let joining_h2 = document.createElement('h2');
+        join_room_div.appendChild(joining_h2);
+        joining_h2.appendChild(document.createTextNode('Joining Room ' + room_id));
+    };
+
+    const display_join_room_page = function() {
+        clear_container();
+
+
 
         // let room_creator_div = document.createElement('div');
         // $container.append(room_creator_div);
@@ -43,6 +56,7 @@ join_room.view = (function () {
 
     return {
         init_module: init_module,
-        display_join_room: display_join_room
+        display_joining_room_page: display_joining_room_page,
+        display_join_room_page: display_join_room_page
     };
 }());

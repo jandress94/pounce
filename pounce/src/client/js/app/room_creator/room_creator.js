@@ -6,6 +6,7 @@ const room_creator = (function () {
     };
 
     const start = function () {
+        app.model.clear();
         room_creator.controller.display_room_creator();
     };
 

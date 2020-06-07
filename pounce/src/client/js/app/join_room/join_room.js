@@ -8,12 +8,18 @@ const join_room = (function () {
             console.log('new room was created with id', room_id);
             window.history.pushState(null, null, "/room/" + room_id);
 
-            start();
+            start(room_id);
+        });
+
+        socket.on('confirm_room_join', function(room_id) {
+            console.log('received confirmation for joining room', room_id);
+            app.model.set_room_id(room_id);
+            join_room.controller.display_join_room_page();
         });
     };
 
-    const start = function () {
-        join_room.controller.display_join_room();
+    const start = function (room_id) {
+        join_room.controller.request_to_join_room(room_id);
     };
 
     return {

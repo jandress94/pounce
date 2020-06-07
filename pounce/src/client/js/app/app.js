@@ -3,6 +3,8 @@ const app = (function () {
     const init_module = function ($container, socket) {
         console.log('starting app');
 
+        app.model.init_module();
+
         room_creator.init_module($container, socket);
         join_room.init_module($container, socket);
 
@@ -10,7 +12,7 @@ const app = (function () {
 
         if (room_id !== null) {
             console.log('room id is', room_id[1]);
-            join_room.start();
+            join_room.start(room_id[1]);
         } else {
             room_creator.start();
         }
