@@ -1,0 +1,29 @@
+{
+  "name": "pounce-app",
+  "version": "0.0.1",
+  "description": "Play the card game pounce",
+  "main": "src/server/server.js",
+  "scripts": {
+    "start": "node src/server/server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "shuffle-array": "^1.0.1",
+    "socket.io": "^2.3.0"
+  },
+  "engines": {
+    "node": "6.10.x"
+  },
+  "repository": {
+    "url": "https://github.com/jandress94/pounce"
+  },
+  "license": "MIT",
+  "keywords": [
+    "node",
+    "glitch",
+    "express"
+  ],
+  "devDependencies": {
+    "browserify": "^16.5.1"
+  }
+}
