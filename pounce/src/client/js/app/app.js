@@ -6,7 +6,14 @@ const app = (function () {
         room_creator.init_module($container, socket);
         join_room.init_module($container, socket);
 
-        room_creator.start();
+        let room_id = window.location.href.match(/room\/([a-z0-9]{5})/);
+
+        if (room_id !== null) {
+            console.log('room id is', room_id[1]);
+            join_room.start();
+        } else {
+            room_creator.start();
+        }
     };
 
     return {
