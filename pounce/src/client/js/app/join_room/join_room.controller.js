@@ -10,27 +10,26 @@ join_room.controller = (function () {
         console.log('requesting to join room', room_id);
         join_room.view.display_joining_room_page(room_id);
         socket.emit('request_room_join', room_id);
-
-        // app.model.set_room_id(room_id);
-        // join_room.controller.display_join_room();
     };
 
     const display_join_room_page = function () {
         join_room.view.display_join_room_page();
     };
 
-    // const display_room_creator = function() {
-    //     join_room.view.display_room_creator();
-    // };
-    //
-    // const handle_new_room_button_clicked = function () {
-    //     console.log('Creating new room');
-    //     socket.emit('create_new_room');
-    // };
+    const handle_set_name = function (name) {
+        console.log('requesting name', name);
+        socket.emit('set_name', name);
+    };
+
+    const display_welcome = function () {
+        join_room.view.display_welcome();
+    };
 
     return {
         init_module: init_module,
         request_to_join_room: request_to_join_room,
-        display_join_room_page: display_join_room_page
+        display_join_room_page: display_join_room_page,
+        handle_set_name: handle_set_name,
+        display_welcome: display_welcome
     };
 }());

@@ -8,14 +8,15 @@ var io = require('socket.io')(http, {
 var shuffle = require('shuffle-array');
 
 // var cards = require('../shared/js/cards');
-//
 // var d = new cards.Deck();
-// console.log(d);
 // shuffle(d.cards);
-// console.log(d);
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 const open_rooms = [];
-const socket_id_to_room = {};
+const room_id_to_sockets = {};
 
 app.use('/js/shared', express.static(path.resolve(__dirname + '/../shared/js')));
 app.use('/js/client', express.static(path.resolve(__dirname + '/../client/js')));
@@ -56,6 +57,8 @@ io.on('connection', function(socket){
         console.log('New Room Request from client with id:', socket.id);
         const room_id = get_new_room_id();
         open_rooms.push(room_id);
+        room_id_to_sockets[room_id] = [];
+
         console.log('New room created with id:', room_id);
         socket.emit('new_room_created', room_id);
     });
@@ -63,11 +66,33 @@ io.on('connection', function(socket){
     // Listen for request to join a room
     socket.on('request_room_join', function (room_id) {
         if (open_rooms.includes(room_id)) {
-            socket_id_to_room[socket.id] = room_id;
+            socket.room_id = room_id;
+            room_id_to_sockets[room_id].push(socket);
             console.log('socket', socket.id, 'joined room', room_id);
 
-            socket.emit('confirm_room_join', room_id);
+            // TODO: remove sleep
+            sleep(2000).then(() => {
+                socket.emit('confirm_room_join', room_id);
+            });
         }
-    })
+    });
+
+    // Listen for setting name
+    socket.on('set_name', function (name) {
+        console.log('socket', socket.id, 'is requesting name', name);
+
+        // TODO: race-conditions
+        for (let i = 0; i < room_id_to_sockets[socket.room_id].length; i++) {
+            const s = room_id_to_sockets[socket.room_id][i];
+            if (s.hasOwnProperty('player_name') && s.player_name === name) {
+                console.log('found the requested name', name, 'from socket', socket.id, 'already taken, rejecting');
+                socket.emit('reject_name');
+                return;
+            }
+        }
+        console.log('accepting the requested name', name, 'for socket', socket.id);
+        socket.player_name = name;
+        socket.emit('accept_name', name);
+    });
 });
 

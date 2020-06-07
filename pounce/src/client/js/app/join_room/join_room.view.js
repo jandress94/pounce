@@ -24,39 +24,51 @@ join_room.view = (function () {
     const display_join_room_page = function() {
         clear_container();
 
+        let join_room_div = document.createElement('div');
+        $container.append(join_room_div);
 
+        let title_h1 = document.createElement('h2');
+        join_room_div.appendChild(title_h1);
+        title_h1.appendChild(document.createTextNode("Welcome to Pounce room " + app.model.get_room_id()));
 
-        // let room_creator_div = document.createElement('div');
-        // $container.append(room_creator_div);
-        //
-        // let title_h1 = document.createElement('h1');
-        // room_creator_div.appendChild(title_h1);
-        // title_h1.appendChild(document.createTextNode("Jim's Pounce App"));
-        //
-        // /*************************************New Room*************************************/
-        //
-        // let new_room_div = document.createElement('div');
-        // room_creator_div.appendChild(new_room_div);
-        //
-        // let new_room_header = document.createElement('h2');
-        // new_room_div.appendChild(new_room_header);
-        // new_room_header.appendChild(document.createTextNode('Create New Pounce Room'));
-        //
-        // let new_room_info_p = document.createElement('p');
-        // new_room_div.appendChild(new_room_info_p);
-        // new_room_info_p.appendChild(document.createTextNode('Press the button below to create a new Pounce room.'));
-        //
-        // let new_room_button = document.createElement('button');
-        // new_room_div.appendChild(new_room_button);
-        // new_room_button.appendChild(document.createTextNode('Create New Room'));
-        // $(new_room_button).click(function() {
-        //     room_creator.controller.handle_new_room_button_clicked();
-        // });
+        /*************************************Set Name*************************************/
+
+        let set_name_div = document.createElement('div');
+        join_room_div.appendChild(set_name_div);
+
+        let set_name_input = document.createElement('input');
+        set_name_div.appendChild(set_name_input);
+
+        let set_name_button = document.createElement('button');
+        set_name_div.appendChild(set_name_button);
+        set_name_button.appendChild(document.createTextNode('Set Name'));
+        $(set_name_button).click(function () {
+            join_room.controller.handle_set_name(set_name_input.value)
+        });
+    };
+
+    const display_welcome = function () {
+        clear_container();
+
+        let welcome_div = document.createElement('div');
+        $container.append(welcome_div);
+
+        let title_h2 = document.createElement('h2');
+        welcome_div.appendChild(title_h2);
+        title_h2.appendChild(document.createTextNode("Welcome to Pounce room " + app.model.get_room_id()));
+
+        let name_div = document.createElement('div');
+        welcome_div.appendChild(name_div);
+
+        let welcome_h2 = document.createElement('h2');
+        name_div.appendChild(welcome_h2);
+        welcome_h2.appendChild(document.createTextNode('Welcome ' + app.model.get_name()));
     };
 
     return {
         init_module: init_module,
         display_joining_room_page: display_joining_room_page,
-        display_join_room_page: display_join_room_page
+        display_join_room_page: display_join_room_page,
+        display_welcome: display_welcome
     };
 }());
