@@ -6,6 +6,7 @@ const join_room = (function () {
 
         socket.on('new_room_created', function(room_id) {
             console.log('new room was created with id', room_id);
+            window.history.pushState(null, null, "/room/" + room_id);
         });
     };
 

@@ -12,6 +12,8 @@ var shuffle = require('shuffle-array');
 // shuffle(d.cards);
 // console.log(d);
 
+const open_rooms = [];
+
 app.use('/js/shared', express.static(path.resolve(__dirname + '/../shared/js')));
 app.use('/js/client', express.static(path.resolve(__dirname + '/../client/js')));
 app.use('/css', express.static(path.resolve(__dirname + '/../client/css')));
@@ -19,8 +21,17 @@ app.use('/favicon.ico', express.static(path.resolve(__dirname + '/../resources/i
 
 // Serve the index page 
 app.get("/", function (request, response) {
-  console.log(__dirname);
   response.sendFile(path.resolve(__dirname + '/../client/html/index.html'));
+});
+
+app.get("/room/:room_id", function(request, response) {
+    const room_id = request.params.room_id;
+    console.log('User trying to enter room', room_id);
+    if (open_rooms.includes(room_id)) {
+        response.sendFile(path.resolve(__dirname + '/../client/html/index.html'));
+    } else {
+        response.sendFile(path.resolve(__dirname + '/../client/html/bad_room.html'));
+    }
 });
 
 // Listen on port 5000
@@ -32,8 +43,6 @@ http.listen(app.get('port'), function(){
 const get_new_room_id = function() {
     return Math.random().toString(36).substring(2, 7);
 };
-
-const open_rooms = [];
 
 // Tell Socket.io to start accepting connections
 io.on('connection', function(socket){
