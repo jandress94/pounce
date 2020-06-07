@@ -45,6 +45,8 @@ join_room.view = (function () {
         $(set_name_button).click(function () {
             join_room.controller.handle_set_name(set_name_input.value)
         });
+
+        update_player_list(join_room_div);
     };
 
     const display_welcome = function () {
@@ -63,6 +65,35 @@ join_room.view = (function () {
         let welcome_h2 = document.createElement('h2');
         name_div.appendChild(welcome_h2);
         welcome_h2.appendChild(document.createTextNode('Welcome ' + app.model.get_name()));
+
+        update_player_list(welcome_div);
+    };
+
+    const update_player_list = function (player_list_container) {
+        let player_list = $("#player_list");
+        if (player_list.length === 0) {
+            // Create the new player list area
+            player_list_container = player_list_container || $container;
+
+            let player_list_div = document.createElement('div');
+            try {
+                player_list_container.appendChild(player_list_div);
+            } catch (err) {
+                player_list_container.append(player_list_div);
+            }
+
+            let player_list_title = document.createElement('h2');
+            player_list_div.appendChild(player_list_title);
+            player_list_title.appendChild(document.createTextNode('Players'));
+
+            player_list = document.createElement('ul');
+            player_list_div.appendChild(player_list);
+            player_list.id = 'player_list';
+        } else {
+            player_list = player_list[1];
+        }
+
+        console.log(player_list);
     };
 
     return {

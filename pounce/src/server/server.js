@@ -21,7 +21,6 @@ const room_id_to_sockets = {};
 app.use('/js/shared', express.static(path.resolve(__dirname + '/../shared/js')));
 app.use('/js/client', express.static(path.resolve(__dirname + '/../client/js')));
 app.use('/css', express.static(path.resolve(__dirname + '/../client/css')));
-// app.use('/favicon.ico', express.static(path.resolve(__dirname + '/../resources/imgs/spade.ico')));
 
 app.get("/favicon.ico", function (request, response) {
     let suit_idx = Math.floor(Math.random() * 4);
