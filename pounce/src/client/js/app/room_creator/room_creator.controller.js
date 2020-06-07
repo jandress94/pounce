@@ -10,8 +10,13 @@ room_creator.controller = (function () {
         room_creator.view.display_room_creator();
     };
 
+    const handle_new_room_button_clicked = function () {
+        console.log('Creating new room');
+    };
+
     return {
         init_module: init_module,
-        display_room_creator: display_room_creator
+        display_room_creator: display_room_creator,
+        handle_new_room_button_clicked: handle_new_room_button_clicked
     };
 }());

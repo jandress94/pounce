@@ -3,7 +3,8 @@ html {
     /* Remove margins */
     margin: 0px;
     position: relative;
-    background-color: #3e5b3d;
+    background-color: #51744f;
+    text-align: center;
 }
 canvas {
     /* Center the canvas */
