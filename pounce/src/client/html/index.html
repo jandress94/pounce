@@ -24,7 +24,8 @@
     <script type="text/javascript">
       $(document).ready(function(){
         let $content_div = $('#content_div');
-        app.init_module($content_div, null);
+        var socket = io(); // This triggers the 'connection' event on the server
+        app.init_module($content_div, socket);
       });
     </script>
   </head>

@@ -12,6 +12,7 @@ room_creator.controller = (function () {
 
     const handle_new_room_button_clicked = function () {
         console.log('Creating new room');
+        socket.emit('create_new_room');
     };
 
     return {

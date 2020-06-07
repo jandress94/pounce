@@ -4,7 +4,9 @@ const room_creator = (function () {
         room_creator.controller.init_module(socket);
         room_creator.view.init_module($container);
 
-        // socket.on()
+        socket.on('new_room_created', function(room_id) {
+            console.log('new room was created with id', room_id);
+        });
     };
 
     const start = function () {
