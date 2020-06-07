@@ -4,6 +4,8 @@ const app = (function () {
         console.log('starting app');
 
         room_creator.init_module($container, socket);
+        join_room.init_module($container, socket);
+
         room_creator.start();
     };
 
