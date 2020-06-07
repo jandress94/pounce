@@ -35,7 +35,7 @@ app.model = (function () {
     const clear = function () {
         room_id = null;
         name = null;
-        players = null;
+        players = [];
     };
 
     return {

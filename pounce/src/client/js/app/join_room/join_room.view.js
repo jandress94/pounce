@@ -43,7 +43,12 @@ join_room.view = (function () {
         set_name_div.appendChild(set_name_button);
         set_name_button.appendChild(document.createTextNode('Set Name'));
         $(set_name_button).click(function () {
-            join_room.controller.handle_set_name(set_name_input.value)
+            join_room.controller.handle_set_name(set_name_input.value);
+        });
+        set_name_input.addEventListener("keyup", function(event) {
+            if (event.key === "Enter") {
+                join_room.controller.handle_set_name(set_name_input.value);
+            }
         });
 
         update_player_list(join_room_div);
