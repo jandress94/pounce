@@ -92,7 +92,7 @@ io.on('connection', function(socket){
             console.log('socket', socket.id, 'joined room', room_id);
 
             // TODO: remove sleep
-            sleep(2000).then(() => {
+            sleep(500).then(() => {
                 socket.emit('confirm_room_join', room_id);
 
                 update_player_names(room_id);
@@ -118,6 +118,19 @@ io.on('connection', function(socket){
         socket.emit('accept_name', name);
 
         update_player_names(socket.room_id);
+    });
+
+    socket.on('disconnect', function(){
+        if (socket.hasOwnProperty('room_id')) {
+            for (let i = 0; i < room_id_to_sockets[socket.room_id].length; i++) {
+                if (socket.id === room_id_to_sockets[socket.room_id][i].id) {
+                    // remove this socket
+                    room_id_to_sockets[socket.room_id].splice(i, 1);
+                    break;
+                }
+            }
+            update_player_names(socket.room_id);
+        }
     });
 });
 
