@@ -43,7 +43,6 @@ game.model = (function () {
             let num_to_draw = Math.min(3, deck[0].length);
             for (let i = 0; i < num_to_draw; i++) {
                 deck[1].unshift(deck[0].shift());
-                console.log(deck[1][0]);
             }
         } else {
             console.log('resetting deck');
@@ -53,11 +52,16 @@ game.model = (function () {
         }
     };
 
+    const get_deck_up_cards = function() {
+        return deck[1].slice(0, 3);
+    };
+
     return {
         init_module: init_module,
         start_hand_w_deck: start_hand_w_deck,
         get_first_pounce_card: get_first_pounce_card,
         is_deck_empty: is_deck_empty,
-        cycle_deck: cycle_deck
+        cycle_deck: cycle_deck,
+        get_deck_up_cards: get_deck_up_cards
     };
 }());
