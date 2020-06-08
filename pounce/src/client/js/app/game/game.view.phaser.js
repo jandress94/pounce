@@ -58,11 +58,6 @@ game.view.phaser = (function () {
         build_pile_groups = [];
         let build_pile_x = BUILD_PILE_START_X;
 
-        // var graphics = this.add.graphics();
-        // graphics.fillStyle(0x0000aa, 1);
-        // graphics.fillRoundedRect(0, 0, BUILD_BASE_WIDTH, BUILD_BASE_WIDTH);
-        // graphics.generateTexture('build_base', BUILD_BASE_WIDTH, BUILD_BASE_HEIGHT);
-        // graphics.destroy();
         let graphics = this.add.graphics().fillStyle(0x0000ff).fillRect(0, 0, BUILD_BASE_WIDTH, BUILD_BASE_HEIGHT);
         graphics.generateTexture('build_base', BUILD_BASE_WIDTH, BUILD_BASE_HEIGHT);
         graphics.destroy();
@@ -73,6 +68,11 @@ game.view.phaser = (function () {
 
             build_pile_groups.push(this.add.group());
             build_pile_groups[i].add(build_base);
+
+            let build_pile_card = this.add.image(build_pile_x, BUILD_PILE_START_Y, 'cards', card_to_filename(game.model.get_build_piles()[i][0]));
+            build_pile_card.setScale(CARD_SCALE);
+            build_pile_card.setInteractive();
+            build_pile_groups[i].add(build_pile_card);
 
             build_pile_x += BUILD_PILE_DELTA_X;
         }
