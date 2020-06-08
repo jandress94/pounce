@@ -24,6 +24,7 @@ if (DEBUG) {
 app.use('/js/shared', express.static(path.resolve(__dirname + '/../shared/js')));
 app.use('/js/client', express.static(path.resolve(__dirname + '/../client/js')));
 app.use('/css', express.static(path.resolve(__dirname + '/../client/css')));
+app.use('/assets', express.static(path.resolve(__dirname + '/../resources')));
 
 app.get("/favicon.ico", function (request, response) {
     let suit_idx = Math.floor(Math.random() * 4);

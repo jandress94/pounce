@@ -24,6 +24,10 @@ game.model = (function () {
         }
 
         hand = deck.cards;
+        center_piles = [];
+        for (let i = 0; i < 4; i++) {
+            center_piles.push([]);
+        }
     };
 
     const get_first_pounce_card = function() {

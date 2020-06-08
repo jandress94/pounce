@@ -77,6 +77,7 @@ join_room.view = (function () {
         let start_game_button = document.createElement('button');
         start_game_div.appendChild(start_game_button);
         start_game_button.appendChild(document.createTextNode('Start Game'));
+        start_game_button.focus();
         $(start_game_button).click(function () {
             join_room.controller.handle_start_game();
         });
