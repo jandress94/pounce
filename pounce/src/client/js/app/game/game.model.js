@@ -31,7 +31,7 @@ game.model = (function () {
     };
 
     const get_first_pounce_card = function() {
-        return pounce_pile[0];
+        return pounce_pile.length > 0 ? pounce_pile[0] : null;
     };
 
     const is_deck_empty = function () {
