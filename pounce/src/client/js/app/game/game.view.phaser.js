@@ -89,14 +89,16 @@ game.view.phaser = (function () {
         for (let i = 0; i < game.model.get_build_piles().length; i++) {
             let build_base = this.add.image(build_pile_x, BUILD_PILE_START_Y, 'build_base');
             build_base.setInteractive();
+            build_base.setData('build_pile_idx', i);
 
             build_pile_groups.push(this.add.group());
-            build_pile_groups[i].add(build_base);
             build_bases_group.add(build_base);
 
             let build_pile_card = this.add.image(build_pile_x, BUILD_PILE_START_Y, 'cards', card_to_filename(game.model.get_build_piles()[i][0]));
             build_pile_card.setScale(CARD_SCALE);
             build_pile_card.setInteractive();
+            build_pile_card.setData('build_pile_idx', i);
+            build_pile_card.setData('build_pile_card_idx', 0);
             build_pile_groups[i].add(build_pile_card);
 
             build_pile_x += BUILD_PILE_DELTA_X;
@@ -117,13 +119,19 @@ game.view.phaser = (function () {
 
                 if (pounce_pile_top === clicked_obj) {
                     console.log('selected pounce pile');
-                    current_click = { clicked_obj_type: 'pounce_pile' };
+                    current_click = {click_metadata: { clicked_obj_type: 'pounce_pile' }};
                 } else if (deck_up_cards_group.contains(clicked_obj)) {
                     if (!clicked_obj.getData('is_top_up_card')) {
                         return;
                     }
                     console.log('selected face up deck card');
-                    current_click = { clicked_obj_type: 'deck_up_card' };
+                    current_click = {click_metadata: { clicked_obj_type: 'deck_up_card' }};
+                } else if (clicked_obj.getData('build_pile_card_idx') !== undefined) {
+                    current_click = {click_metadata: {
+                        clicked_obj_type: 'build_pile',
+                            build_pile_idx: clicked_obj.getData('build_pile_idx'),
+                            build_pile_card_idx: clicked_obj.getData('build_pile_card_idx')
+                    }};
                 } else {
                     return;
                 }
@@ -132,16 +140,17 @@ game.view.phaser = (function () {
                 current_click.clicked_obj = clicked_obj;
 
             } else if (current_click !== null) {
-                for (let i = 0; i < build_pile_groups.length; i++) {
-                    if (build_pile_groups[i].contains(clicked_obj)) {
-                        if (game.model.move_to_build_pile(current_click.clicked_obj_type, i)) {
-                            if (current_click.clicked_obj_type === 'pounce_pile') {
-                                refresh_pounce = true
-                            } else if (current_click.clicked_obj_type === 'deck_up_card') {
-                                refresh_deck_up = true;
-                            }
-                            refresh_build_piles.push(i);
+                let build_pile_idx = clicked_obj.getData('build_pile_idx');
+                if (build_pile_idx !== undefined) {
+                    if (game.model.move_to_build_pile(current_click.click_metadata, build_pile_idx)) {
+                        if (current_click.click_metadata.clicked_obj_type === 'pounce_pile') {
+                            refresh_pounce = true
+                        } else if (current_click.click_metadata.clicked_obj_type === 'deck_up_card') {
+                            refresh_deck_up = true;
+                        } else if (current_click.click_metadata.clicked_obj_type === 'build_pile') {
+                            refresh_build_piles.push(current_click.click_metadata.build_pile_idx);
                         }
+                        refresh_build_piles.push(build_pile_idx);
                     }
                 }
 
@@ -189,6 +198,8 @@ game.view.phaser = (function () {
                     let build_pile_card = this.add.image(build_pile_x, build_pile_y, 'cards', card_to_filename(build_pile[j]));
                     build_pile_card.setScale(CARD_SCALE);
                     build_pile_card.setInteractive();
+                    build_pile_card.setData('build_pile_idx', build_pile_idx);
+                    build_pile_card.setData('build_pile_card_idx', j);
 
                     build_pile_groups[build_pile_idx].add(build_pile_card);
 

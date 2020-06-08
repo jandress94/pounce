@@ -60,9 +60,9 @@ game.model = (function () {
         return build_piles;
     };
 
-    const is_valid_build = function(build_pile_idx, move_card) {
+    const is_valid_build = function(build_pile_idx, move_card, is_pounce_move_card = false) {
         if (build_piles[build_pile_idx].length === 0) {
-            return move_card.rank === 13;
+            return move_card.rank === 13 || is_pounce_move_card;
         } else {
             let build_pile = build_piles[build_pile_idx];
             let build_top_card = build_pile[build_pile.length - 1];
@@ -71,9 +71,10 @@ game.model = (function () {
         }
     };
 
-    const move_to_build_pile = function(move_type, build_pile_idx) {
+    const move_to_build_pile = function(move_metadata, build_pile_idx) {
+        let move_type = move_metadata.clicked_obj_type;
         if (move_type === 'pounce_pile') {
-            if (!is_valid_build(build_pile_idx, pounce_pile[0])) {
+            if (!is_valid_build(build_pile_idx, pounce_pile[0], true)) {
                 return false;
             }
 
@@ -84,6 +85,15 @@ game.model = (function () {
             }
 
             build_piles[build_pile_idx].push(deck[1].shift());
+        } else if (move_type === 'build_pile') {
+            let move_build_pile_idx = move_metadata.build_pile_idx;
+            let move_build_pile_card_idx = move_metadata.build_pile_card_idx;
+
+            if (!is_valid_build(build_pile_idx, build_piles[move_build_pile_idx][move_build_pile_card_idx])) {
+                return false;
+            }
+
+            build_piles[build_pile_idx] = build_piles[build_pile_idx].concat(build_piles[move_build_pile_idx].splice(move_build_pile_card_idx, build_piles[move_build_pile_idx].length));
         }
         return true;
     };
