@@ -33,12 +33,18 @@ game.view.phaser = (function () {
 
         for (var i = 0; i < frames.length; i++)
         {
-            console.log(frames[i]);
             var x = Phaser.Math.Between(0, 800);
             var y = Phaser.Math.Between(0, 600);
 
-            this.add.image(x, y, 'cards', frames[i]);
+            let card_sprite = this.add.image(x, y, 'cards', frames[i]);
+            card_sprite.setInteractive();
+            this.input.setDraggable(card_sprite);
         }
+
+        this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
+            gameObject.x = dragX;
+            gameObject.y = dragY;
+        });
     };
 
     return {
