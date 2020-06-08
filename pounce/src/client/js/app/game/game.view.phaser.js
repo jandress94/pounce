@@ -2,16 +2,26 @@ game.view.phaser = (function () {
 
     let CARD_SCALE = 0.6;
 
-    let DECK_DOWN_X = 100;
+    let DECK_DOWN_X = 75;
     let DECK_DOWN_Y = 500;
 
-    let DECK_UP_START_X = 200;
+    let DECK_UP_START_X = 175;
     let DECK_UP_DELTA_X = 30;
+
+    let BUILD_PILE_START_X = 400;
+    let BUILD_PILE_DELTA_X = 110;
+    let BUILD_PILE_START_Y = 350;
+    let BUILD_PILE_DELTA_Y = 40;
+
+    let BUILD_BASE_WIDTH = 75;
+    let BUILD_BASE_HEIGHT = 100;
 
     let phaser_game;
 
     let refresh_deck_up = false;
+
     let deck_up_cards_group;
+    let build_pile_groups;
 
     const init_module = function () {
         phaser_game = null
@@ -45,7 +55,30 @@ game.view.phaser = (function () {
 
         deck_up_cards_group = this.add.group();
 
+        build_pile_groups = [];
+        let build_pile_x = BUILD_PILE_START_X;
+
+        // var graphics = this.add.graphics();
+        // graphics.fillStyle(0x0000aa, 1);
+        // graphics.fillRoundedRect(0, 0, BUILD_BASE_WIDTH, BUILD_BASE_WIDTH);
+        // graphics.generateTexture('build_base', BUILD_BASE_WIDTH, BUILD_BASE_HEIGHT);
+        // graphics.destroy();
+        let graphics = this.add.graphics().fillStyle(0x0000ff).fillRect(0, 0, BUILD_BASE_WIDTH, BUILD_BASE_HEIGHT);
+        graphics.generateTexture('build_base', BUILD_BASE_WIDTH, BUILD_BASE_HEIGHT);
+        graphics.destroy();
+
+        for (let i = 0; i < game.model.get_build_piles().length; i++) {
+            let build_base = this.add.image(build_pile_x, BUILD_PILE_START_Y, 'build_base');
+            build_base.setInteractive();
+
+            build_pile_groups.push(this.add.group());
+            build_pile_groups[i].add(build_base);
+
+            build_pile_x += BUILD_PILE_DELTA_X;
+        }
+
         this.input.on('gameobjectdown', function (pointer, gameObject) {
+            console.log('click');
             if (gameObject === hand_draw_pile) {
                 game.controller.handle_click_hand_draw();
                 refresh_deck_up = true;

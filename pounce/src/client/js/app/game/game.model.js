@@ -56,12 +56,17 @@ game.model = (function () {
         return deck[1].slice(0, 3);
     };
 
+    const get_build_piles = function() {
+        return build_piles;
+    };
+
     return {
         init_module: init_module,
         start_hand_w_deck: start_hand_w_deck,
         get_first_pounce_card: get_first_pounce_card,
         is_deck_empty: is_deck_empty,
         cycle_deck: cycle_deck,
-        get_deck_up_cards: get_deck_up_cards
+        get_deck_up_cards: get_deck_up_cards,
+        get_build_piles: get_build_piles
     };
 }());
