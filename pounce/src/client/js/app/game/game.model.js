@@ -60,6 +60,34 @@ game.model = (function () {
         return build_piles;
     };
 
+    const is_valid_build = function(build_pile_idx, move_card) {
+        if (build_piles[build_pile_idx].length === 0) {
+            return move_card.rank === 13;
+        } else {
+            let build_pile = build_piles[build_pile_idx];
+            let build_top_card = build_pile[build_pile.length - 1];
+
+            return build_top_card.suit.color !== move_card.suit.color && build_top_card.rank === move_card.rank + 1;
+        }
+    };
+
+    const move_to_build_pile = function(move_type, build_pile_idx) {
+        if (move_type === 'pounce_pile') {
+            if (!is_valid_build(build_pile_idx, pounce_pile[0])) {
+                return false;
+            }
+
+            build_piles[build_pile_idx].push(pounce_pile.shift());
+        } else if (move_type === 'deck_up_card') {
+            if (!is_valid_build(build_pile_idx, deck[1][0])) {
+                return false;
+            }
+
+            build_piles[build_pile_idx].push(deck[1].shift());
+        }
+        return true;
+    };
+
     return {
         init_module: init_module,
         start_hand_w_deck: start_hand_w_deck,
@@ -67,6 +95,7 @@ game.model = (function () {
         is_deck_empty: is_deck_empty,
         cycle_deck: cycle_deck,
         get_deck_up_cards: get_deck_up_cards,
-        get_build_piles: get_build_piles
+        get_build_piles: get_build_piles,
+        move_to_build_pile: move_to_build_pile
     };
 }());

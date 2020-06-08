@@ -11,7 +11,7 @@ game.view.phaser = (function () {
     let BUILD_PILE_START_X = 400;
     let BUILD_PILE_DELTA_X = 110;
     let BUILD_PILE_START_Y = 350;
-    let BUILD_PILE_DELTA_Y = 40;
+    let BUILD_PILE_DELTA_Y = 35;
 
     let BUILD_BASE_WIDTH = 75;
     let BUILD_BASE_HEIGHT = 100;
@@ -23,9 +23,13 @@ game.view.phaser = (function () {
     let phaser_game;
 
     let refresh_deck_up = false;
+    let refresh_pounce = false;
+    let refresh_build_piles = [];
 
     let deck_up_cards_group;
     let build_pile_groups;
+
+    let pounce_pile_top;
 
     let current_click;
 
@@ -52,6 +56,12 @@ game.view.phaser = (function () {
     const preload = function () {
         this.load.atlasXML('cards', '/assets/imgs/playingCards.png', '/assets/imgs/playingCards.xml');
         this.load.atlasXML('card_backs', '/assets/imgs/playingCardBacks.png', '/assets/imgs/playingCardBacks.xml')
+    };
+
+    const create_pounce_card = function(scene) {
+        pounce_pile_top = scene.add.image(POUNCE_PILE_X, BUILD_PILE_START_Y, 'cards', card_to_filename(game.model.get_first_pounce_card()));
+        pounce_pile_top.setScale(CARD_SCALE);
+        pounce_pile_top.setInteractive();
     };
 
     const create = function () {
@@ -93,26 +103,50 @@ game.view.phaser = (function () {
         }
 
         // create pounce pile
-        let pounce_pile_top = this.add.image(POUNCE_PILE_X, BUILD_PILE_START_Y, 'cards', card_to_filename(game.model.get_first_pounce_card()));
-        pounce_pile_top.setScale(CARD_SCALE);
-        pounce_pile_top.setInteractive();
+        create_pounce_card(this);
 
-        this.input.on('gameobjectdown', function (pointer, gameObject) {
+        this.input.on('gameobjectdown', function (pointer, clicked_obj) {
             console.log('click');
-            if (gameObject === deck_down_card) {
+            if (clicked_obj === deck_down_card) {
                 game.controller.handle_click_hand_draw();
                 refresh_deck_up = true;
-            } else if (current_click === null && !build_bases_group.contains(gameObject)) {
-                gameObject.setTint(SELECTED_TINT);
-                current_click = {
-                    clicked_obj: gameObject
-                };
-
-                if (pounce_pile_top === gameObject) {
-                    console.log('selected pounce pile');
-                } else if (deck_up_cards_group.contains(gameObject)) {
-                    console.log('selected face up deck card');
+            } else if (current_click === null) {
+                if (build_bases_group.contains(clicked_obj)) {
+                    return;
                 }
+
+                if (pounce_pile_top === clicked_obj) {
+                    console.log('selected pounce pile');
+                    current_click = { clicked_obj_type: 'pounce_pile' };
+                } else if (deck_up_cards_group.contains(clicked_obj)) {
+                    if (!clicked_obj.getData('is_top_up_card')) {
+                        return;
+                    }
+                    console.log('selected face up deck card');
+                    current_click = { clicked_obj_type: 'deck_up_card' };
+                } else {
+                    return;
+                }
+
+                clicked_obj.setTint(SELECTED_TINT);
+                current_click.clicked_obj = clicked_obj;
+
+            } else if (current_click !== null) {
+                for (let i = 0; i < build_pile_groups.length; i++) {
+                    if (build_pile_groups[i].contains(clicked_obj)) {
+                        if (game.model.move_to_build_pile(current_click.clicked_obj_type, i)) {
+                            if (current_click.clicked_obj_type === 'pounce_pile') {
+                                refresh_pounce = true
+                            } else if (current_click.clicked_obj_type === 'deck_up_card') {
+                                refresh_deck_up = true;
+                            }
+                            refresh_build_piles.push(i);
+                        }
+                    }
+                }
+
+                current_click.clicked_obj.clearTint();
+                current_click = null;
             }
         });
     };
@@ -128,16 +162,45 @@ game.view.phaser = (function () {
                 let deck_up_card = this.add.image(deck_up_card_x, DECK_DOWN_Y, 'cards', card_to_filename(deck_up_cards[i]));
                 deck_up_card.setScale(CARD_SCALE);
                 deck_up_card.setInteractive();
+                deck_up_card.setData('is_top_up_card', i === 0);
 
                 deck_up_cards_group.add(deck_up_card);
 
                 deck_up_card_x += DECK_UP_DELTA_X;
             }
         }
+
+        if (refresh_pounce) {
+            refresh_pounce = false;
+            pounce_pile_top.destroy();
+            create_pounce_card(this);
+        }
+
+        if (refresh_build_piles.length > 0) {
+            for (let i = refresh_build_piles.length - 1; i >= 0; i--) {
+                let build_pile_idx = refresh_build_piles[i];
+                build_pile_groups[build_pile_idx].clear(true, true);
+
+                let build_pile_x = BUILD_PILE_START_X + build_pile_idx * BUILD_PILE_DELTA_X;
+                let build_pile_y = BUILD_PILE_START_Y;
+
+                let build_pile = game.model.get_build_piles()[build_pile_idx];
+                for (let j = 0; j < build_pile.length; j++) {
+                    let build_pile_card = this.add.image(build_pile_x, build_pile_y, 'cards', card_to_filename(build_pile[j]));
+                    build_pile_card.setScale(CARD_SCALE);
+                    build_pile_card.setInteractive();
+
+                    build_pile_groups[build_pile_idx].add(build_pile_card);
+
+                    build_pile_y += BUILD_PILE_DELTA_Y;
+                }
+                refresh_build_piles.pop();
+            }
+        }
     };
 
     const card_to_filename = function(c) {
-        return 'card_' + c.suit + '_' + c.rank.toString() + '.png';
+        return 'card_' + c.suit.name + '_' + c.rank.toString() + '.png';
     };
 
     return {

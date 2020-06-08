@@ -1,6 +1,11 @@
 (function(exports){
 
-    var Suits = Object.freeze({CLUB: 'CLUB', DIAMOND: 'DIAMOND', HEART: 'HEART', SPADE: 'SPADE'});
+    var Suits = Object.freeze({
+            CLUB: {name: 'CLUB', color: 'BLACK'},
+            DIAMOND: {name: 'DIAMOND', color: 'RED'},
+            HEART: {name: 'HEART', color: 'RED'},
+            SPADE: {name: 'SPADE', color: 'BLACK'}
+    });
 
     var Card = class Card {
         constructor(suit, rank) {
@@ -23,7 +28,7 @@
             for (var s in Suits) {
                 if (Suits.hasOwnProperty(s)) {
                     for (let r = 1; r <= 13; r++) {
-                        this.cards.push(new Card(s, r));
+                        this.cards.push(new Card(Suits[s], r));
                     }
                 }
             }
