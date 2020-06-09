@@ -7,6 +7,20 @@
             SPADE: {name: 'SPADE', color: 'BLACK'}
     });
 
+    var id_to_suit = function(id) {
+        if (id === 0) {
+            return Suits.CLUB;
+        } else if (id === 1) {
+            return Suits.DIAMOND;
+        } else if (id === 2) {
+            return Suits.HEART;
+        } else if (id === 3) {
+            return Suits.SPADE
+        } else {
+            throw "Invalid Suit id: " + id.toString();
+        }
+    };
+
     var Card = class Card {
         constructor(suit, rank) {
             this.suit = suit;
@@ -84,6 +98,7 @@
     exports.Card = Card;
     exports.Deck = Deck;
     exports.Player = Player;
+    exports.id_to_suit = id_to_suit;
 
 }(typeof exports === 'undefined' ? this.cards = {} : exports));
 

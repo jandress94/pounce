@@ -26,7 +26,7 @@ game.model = (function () {
         deck = [d.cards, []];
         center_piles = [];
         for (let i = 0; i < 4; i++) {
-            center_piles.push([]);
+            center_piles.push([0, 0, 0, 0, 0]);
         }
     };
 
@@ -58,6 +58,10 @@ game.model = (function () {
 
     const get_build_piles = function() {
         return build_piles;
+    };
+
+    const get_center_piles = function() {
+        return center_piles;
     };
 
     const is_valid_build = function(build_pile_idx, move_card, is_pounce_move_card = false) {
@@ -106,6 +110,7 @@ game.model = (function () {
         cycle_deck: cycle_deck,
         get_deck_up_cards: get_deck_up_cards,
         get_build_piles: get_build_piles,
-        move_to_build_pile: move_to_build_pile
+        move_to_build_pile: move_to_build_pile,
+        get_center_piles: get_center_piles
     };
 }());

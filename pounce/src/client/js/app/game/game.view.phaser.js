@@ -1,5 +1,8 @@
 game.view.phaser = (function () {
 
+    let SCENE_WIDTH = 800;
+    let SCENE_HEIGHT = 600;
+
     let CARD_SCALE = 0.6;
 
     let DECK_DOWN_X = 75;
@@ -18,6 +21,15 @@ game.view.phaser = (function () {
 
     let POUNCE_PILE_X = DECK_UP_START_X;
 
+    let CENTER_PILE_START_Y = 50;
+    let CENTER_PILE_GAP_Y = 20;
+    let CENTER_PILE_GAP_X = 20;
+    let CENTER_PILE_CARD_WIDTH = 100;
+    let CENTER_PILE_CARD_HEIGHT = 40;
+
+    let CENTER_PILE_FONT = 'Arial';
+    let CENTER_PILE_TEXT_SIZE = 50;
+
     let SELECTED_TINT = 0xff9999;
 
     let phaser_game;
@@ -33,6 +45,8 @@ game.view.phaser = (function () {
 
     let current_click;
 
+    let center_texts;
+
     const init_module = function () {
         phaser_game = null
     };
@@ -40,8 +54,8 @@ game.view.phaser = (function () {
     const create_game = function (game_div) {
         var config = {
             type: Phaser.AUTO,
-            width: 800,
-            height: 600,
+            width: SCENE_WIDTH,
+            height: SCENE_HEIGHT,
             parent: game_div,
             scene: {
                 preload: preload,
@@ -56,12 +70,49 @@ game.view.phaser = (function () {
     const preload = function () {
         this.load.atlasXML('cards', '/assets/imgs/playingCards.png', '/assets/imgs/playingCards.xml');
         this.load.atlasXML('card_backs', '/assets/imgs/playingCardBacks.png', '/assets/imgs/playingCardBacks.xml')
+
+        // create texture for the base of the build piles
+        let graphics = this.add.graphics().fillStyle(0x0000ff).fillRect(0, 0, BUILD_BASE_WIDTH, BUILD_BASE_HEIGHT);
+        graphics.generateTexture('build_base', BUILD_BASE_WIDTH, BUILD_BASE_HEIGHT);
+        graphics.destroy();
+
     };
 
     const create_pounce_card = function(scene) {
         pounce_pile_top = scene.add.image(POUNCE_PILE_X, BUILD_PILE_START_Y, 'cards', card_to_filename(game.model.get_first_pounce_card()));
         pounce_pile_top.setScale(CARD_SCALE);
         pounce_pile_top.setInteractive();
+    };
+
+    const create_center_card_text = function(scene, x, y, s, r=null) {
+        let text = "";
+        if (r !== null) {
+            if (r === 1) {
+                text += "A";
+            } else if (r === 11) {
+                text += "J";
+            } else if (r === 12) {
+                text += "Q";
+            } else if (r === 13) {
+                text += "K";
+            } else {
+                text += r.toString();
+            }
+        }
+
+        if (s === cards.Suits.CLUB) {
+            text += "♣️";
+        } else if (s === cards.Suits.DIAMOND) {
+            text += "♦️";
+        } else if (s === cards.Suits.HEART) {
+            text += "♥️️";
+        } else if (s === cards.Suits.SPADE) {
+            text += "♠️️";
+        }
+
+        let color = (s === cards.Suits.DIAMOND || s === cards.Suits.HEART) ? '#ff0000' : '#000000';
+
+        return scene.add.text(x, y, text, { fontFamily: CENTER_PILE_FONT, fontSize: CENTER_PILE_TEXT_SIZE, color: color }).setOrigin();
     };
 
     const create = function () {
@@ -78,11 +129,6 @@ game.view.phaser = (function () {
         // create build piles groups
         build_pile_groups = [];
         let build_bases_group = this.add.group();
-
-        // create texture for the base of the build piles
-        let graphics = this.add.graphics().fillStyle(0x0000ff).fillRect(0, 0, BUILD_BASE_WIDTH, BUILD_BASE_HEIGHT);
-        graphics.generateTexture('build_base', BUILD_BASE_WIDTH, BUILD_BASE_HEIGHT);
-        graphics.destroy();
 
         // create the build piles with a base and starting card
         let build_pile_x = BUILD_PILE_START_X;
@@ -106,6 +152,23 @@ game.view.phaser = (function () {
 
         // create pounce pile
         create_pounce_card(this);
+
+        // create build piles
+        let center_piles = game.model.get_center_piles();
+        let center_pile_y = CENTER_PILE_START_Y;
+        for (let s = 0; s < center_piles.length; s++) {
+            let num_piles = center_piles[s].length;
+            let center_pile_x = (SCENE_WIDTH - (num_piles - 1) * (CENTER_PILE_CARD_WIDTH + CENTER_PILE_GAP_X)) / 2;
+            for (let p = 0; p < num_piles; p++) {
+                let center_pile_base = this.add.image(center_pile_x, center_pile_y, 'build_base');
+                center_pile_base.setScale(CENTER_PILE_CARD_WIDTH / center_pile_base.width, CENTER_PILE_CARD_HEIGHT / center_pile_base.height);
+
+                create_center_card_text(this, center_pile_x, center_pile_y, cards.id_to_suit(s));
+
+                center_pile_x += CENTER_PILE_CARD_WIDTH + CENTER_PILE_GAP_X;
+            }
+            center_pile_y += CENTER_PILE_CARD_HEIGHT + CENTER_PILE_GAP_Y;
+        }
 
         this.input.on('gameobjectdown', function (pointer, clicked_obj) {
             console.log('click');
