@@ -82,7 +82,12 @@ game.view.phaser = (function () {
     };
 
     const create_pounce_card = function(scene) {
-        pounce_pile_top = scene.add.image(POUNCE_PILE_X, BUILD_PILE_START_Y, 'cards', card_to_filename(game.model.get_first_pounce_card()));
+        let pounce_card = game.model.get_first_pounce_card();
+        if (pounce_card === null) {
+            return;
+        }
+
+        pounce_pile_top = scene.add.image(POUNCE_PILE_X, BUILD_PILE_START_Y, 'cards', card_to_filename(pounce_card));
         pounce_pile_top.setScale(CARD_SCALE);
         pounce_pile_top.setInteractive();
     };

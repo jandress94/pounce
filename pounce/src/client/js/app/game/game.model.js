@@ -1,5 +1,7 @@
 game.model = (function () {
 
+    let NUM_POUNCE_CARDS = 2;
+
     let pounce_pile;
     let build_piles;
     let deck;
@@ -14,7 +16,7 @@ game.model = (function () {
 
     const start_hand_w_deck = function(d, num_players) {
         pounce_pile = [];
-        for (let i = 0; i < 13; i++) {
+        for (let i = 0; i < NUM_POUNCE_CARDS; i++) {
             pounce_pile.push(d.cards.pop());
         }
 
