@@ -16,9 +16,17 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-const room_id_to_sockets = {};
+const create_new_room = function() {
+    let room_data = {
+        sockets: []
+    };
+    room_data.num_players = function() { return room_data.sockets.length; };
+    return room_data;
+};
+
+const room_data = {};
 if (DEBUG) {
-    room_id_to_sockets['testroom'] = [];
+    room_data['testroom'] = create_new_room();
 }
 
 app.use('/js/shared', express.static(path.resolve(__dirname + '/../shared/js')));
@@ -47,7 +55,7 @@ app.get("/", function (request, response) {
 app.get("/room/:room_id", function(request, response) {
     const room_id = request.params.room_id;
     console.log('User trying to enter room', room_id);
-    if (room_id_to_sockets.hasOwnProperty(room_id)) {
+    if (room_data.hasOwnProperty(room_id)) {
         response.sendFile(path.resolve(__dirname + '/../client/html/index.html'));
     } else {
         response.sendFile(path.resolve(__dirname + '/../client/html/bad_room.html'));
@@ -66,23 +74,32 @@ const get_new_room_id = function(id_len = 5) {
 
 const update_player_names = function(room_id) {
     let all_player_names = [];
-    for (let i = 0; i < room_id_to_sockets[room_id].length; i++) {
-        const s = room_id_to_sockets[room_id][i];
+    for (let i = 0; i < room_data[room_id].num_players(); i++) {
+        const s = room_data[room_id].sockets[i];
         all_player_names.push(s.hasOwnProperty('player_name') ? s.player_name : null);
     }
     io.emit('update_players', all_player_names);
 };
 
 const start_hand = function (room_id) {
+    let room = room_data[room_id];
+
     let decks = [];
-    let num_players = room_id_to_sockets[room_id].length;
-    for (let i = 0; i < num_players; i++) {
+    for (let i = 0; i < room.num_players(); i++) {
         decks.push(new cards.Deck());
         shuffle(decks[i].cards);
     }
 
-    for (let i = 0; i < num_players; i++) {
-        room_id_to_sockets[room_id][i].emit('start_hand', { deck: decks[i], num_players: num_players });
+    room.center_piles = [];
+    for (let i = 0; i < 4; i++) {
+        room.center_piles.push([]);
+        for (let j = 0; j < room.num_players(); j++) {
+            room.center_piles[i].push(0);
+        }
+    }
+
+    for (let i = 0; i < room.num_players(); i++) {
+        room.sockets[i].emit('start_hand', { deck: decks[i], num_players: room.num_players() });
     }
 };
 
@@ -90,10 +107,9 @@ const start_game = function(room_id) {
     start_hand(room_id);
 };
 
-const handle_pounce = function(room_id, pouncer_socket) {
-    let num_players = room_id_to_sockets[room_id].length;
-    for (let i = 0; i < num_players; i++) {
-        room_id_to_sockets[room_id][i].emit('round_done', pouncer_socket.player_name);
+const handle_pounce = function(room_id, pouncer_socket) {;
+    for (let i = 0; i < room_data[room_id].num_players(); i++) {
+        room_data[room_id].sockets[i].emit('round_done', pouncer_socket.player_name);
     }
 };
 
@@ -105,7 +121,7 @@ io.on('connection', function(socket){
     socket.on('create_new_room', function(){
         console.log('New Room Request from client with id:', socket.id);
         const room_id = get_new_room_id();
-        room_id_to_sockets[room_id] = [];
+        room_data[room_id] = create_new_room();
 
         console.log('New room created with id:', room_id);
         socket.emit('new_room_created', room_id);
@@ -113,9 +129,9 @@ io.on('connection', function(socket){
 
     // Listen for request to join a room
     socket.on('request_room_join', function (room_id) {
-        if (room_id_to_sockets.hasOwnProperty(room_id)) {
+        if (room_data.hasOwnProperty(room_id)) {
             socket.room_id = room_id;
-            room_id_to_sockets[room_id].push(socket);
+            room_data[room_id].sockets.push(socket);
             console.log('socket', socket.id, 'joined room', room_id);
 
             // TODO: remove sleep
@@ -132,8 +148,8 @@ io.on('connection', function(socket){
         console.log('socket', socket.id, 'is requesting name', name);
 
         // TODO: race-conditions
-        for (let i = 0; i < room_id_to_sockets[socket.room_id].length; i++) {
-            const s = room_id_to_sockets[socket.room_id][i];
+        for (let i = 0; i < room_data[socket.room_id].num_players(); i++) {
+            const s = room_data[socket.room_id].sockets[i];
             if (s.hasOwnProperty('player_name') && s.player_name === name) {
                 console.log('found the requested name', name, 'from socket', socket.id, 'already taken, rejecting');
                 socket.emit('reject_name');
@@ -159,10 +175,10 @@ io.on('connection', function(socket){
 
     socket.on('disconnect', function(){
         if (socket.hasOwnProperty('room_id')) {
-            for (let i = 0; i < room_id_to_sockets[socket.room_id].length; i++) {
-                if (socket.id === room_id_to_sockets[socket.room_id][i].id) {
+            for (let i = 0; i < room_data[socket.room_id].num_players(); i++) {
+                if (socket.id === room_data[socket.room_id].sockets[i].id) {
                     // remove this socket
-                    room_id_to_sockets[socket.room_id].splice(i, 1);
+                    room_data[socket.room_id].sockets.splice(i, 1);
                     break;
                 }
             }
