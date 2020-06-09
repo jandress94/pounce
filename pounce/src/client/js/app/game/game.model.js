@@ -171,6 +171,7 @@ game.model = (function () {
             if (move_type === 'pounce_pile') {
                 pounce_pile.shift();
                 refresh_data.refresh_pounce = true;
+                check_for_win();
             } else if (move_type === 'deck_up_card') {
                 deck[1].shift();
                 refresh_data.refresh_deck_up = true;
