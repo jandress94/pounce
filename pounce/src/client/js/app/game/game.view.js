@@ -21,9 +21,19 @@ game.view = (function () {
         game.view.phaser.create_game(game_div);
     };
 
+    const pause_game = function() {
+        game.view.phaser.pause_game();
+    };
+
+    const resume_game = function() {
+        game.view.phaser.resume_game();
+    };
+
     return {
         init_module: init_module,
         create_initial_game: create_initial_game,
-        clear_container: clear_container
+        clear_container: clear_container,
+        pause_game: pause_game,
+        resume_game: resume_game
     };
 }());

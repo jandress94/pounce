@@ -7,6 +7,8 @@ game.model = (function () {
     let deck;
     let center_piles;
 
+    let center_click_metadata;
+
     let refresh_data = {
         refresh_deck_up: false,
         refresh_pounce: false,
@@ -19,6 +21,8 @@ game.model = (function () {
         build_piles = null;
         deck = null;
         center_piles = null;
+
+        center_click_metadata = null;
     };
 
     const start_hand_w_deck = function(d, num_players) {
@@ -119,49 +123,28 @@ game.model = (function () {
         refresh_data.refresh_build_piles.push(build_pile_idx);
         return true;
     };
-    
-    const is_valid_center = function (center_pile_coords, move_card) {
-        console.log(center_pile_coords, move_card);
+
+    const check_move_to_center = function(move_metadata, center_pile_coords) {
+        let move_type = move_metadata.clicked_obj_type;
+        let move_card;
+        if (move_type === 'pounce_pile') {
+            move_card = pounce_pile[0];
+        } else if (move_type === 'deck_up_card') {
+            move_card = deck[1][0];
+        } else if (move_type === 'build_pile') {
+            let move_build_pile_idx = move_metadata.build_pile_idx;
+            let move_build_pile_card_idx = move_metadata.build_pile_card_idx;
+            if (move_build_pile_card_idx !== build_piles[move_build_pile_idx].length - 1) {
+                return false;
+            }
+            move_card = build_piles[move_build_pile_idx][move_build_pile_card_idx];
+        }
+
         let center_suit = cards.id_to_suit(center_pile_coords[0]);
         let suit_idx = center_pile_coords[0];
         let player_idx = center_pile_coords[1];
 
         return center_suit.name === move_card.suit.name && center_piles[suit_idx][player_idx] + 1 === move_card.rank;
-    };
-
-    const move_to_center_pile = function(move_metadata, center_pile_coords) {
-        let move_type = move_metadata.clicked_obj_type;
-        if (move_type === 'pounce_pile') {
-            if (!is_valid_center(center_pile_coords, pounce_pile[0])) {
-                return false;
-            }
-
-            pounce_pile.shift();
-            refresh_data.refresh_pounce = true;
-            check_for_win();
-        } else if (move_type === 'deck_up_card') {
-            if (!is_valid_center(center_pile_coords, deck[1][0])) {
-                return false;
-            }
-
-            deck[1].shift();
-            refresh_data.refresh_deck_up = true;
-        } else if (move_type === 'build_pile') {
-            let move_build_pile_idx = move_metadata.build_pile_idx;
-            let move_build_pile_card_idx = move_metadata.build_pile_card_idx;
-
-            if (move_build_pile_card_idx !== build_piles[move_build_pile_idx].length - 1 ||
-                !is_valid_center(center_pile_coords, build_piles[move_build_pile_idx][move_build_pile_card_idx])) {
-                return false;
-            }
-
-            build_piles[move_build_pile_idx].pop();
-            refresh_data.refresh_build_piles.push(move_build_pile_idx);
-        }
-
-        center_piles[center_pile_coords[0]][center_pile_coords[1]] += 1;
-        refresh_data.refresh_center_pile_ids.push(center_pile_coords);
-        return true;
     };
 
     const check_for_win = function () {
@@ -178,6 +161,38 @@ game.model = (function () {
         return refresh_data;
     };
 
+    const set_center_click_metadata = function(center_meta) {
+        center_click_metadata = center_meta;
+    };
+
+    const process_center_click_metadata = function (accepted) {
+        if (accepted) {
+            let move_type = center_click_metadata.clicked_obj_type;
+            if (move_type === 'pounce_pile') {
+                pounce_pile.shift();
+                refresh_data.refresh_pounce = true;
+            } else if (move_type === 'deck_up_card') {
+                deck[1].shift();
+                refresh_data.refresh_deck_up = true;
+            } else if (move_type === 'build_pile') {
+                let move_build_pile_idx = center_click_metadata.build_pile_idx;
+                build_piles[move_build_pile_idx].pop();
+                refresh_data.refresh_build_piles.push(move_build_pile_idx);
+            }
+        }
+        center_click_metadata = null;
+    };
+
+    const process_update_center = function (new_center_data) {
+         let center_pile_coords = new_center_data.center_pile_coords;
+         let suit_idx = center_pile_coords[0];
+         let player_idx = center_pile_coords[1];
+         let new_val = new_center_data.new_val;
+
+         center_piles[suit_idx][player_idx] = Math.max(center_piles[suit_idx][player_idx], new_val);
+         refresh_data.refresh_center_pile_ids.push(center_pile_coords);
+    };
+
     return {
         init_module: init_module,
         start_hand_w_deck: start_hand_w_deck,
@@ -188,8 +203,11 @@ game.model = (function () {
         get_build_piles: get_build_piles,
         move_to_build_pile: move_to_build_pile,
         get_center_piles: get_center_piles,
-        move_to_center_pile: move_to_center_pile,
+        check_move_to_center: check_move_to_center,
         get_num_players: get_num_players,
-        get_refresh_data: get_refresh_data
+        get_refresh_data: get_refresh_data,
+        set_center_click_metadata: set_center_click_metadata,
+        process_center_click_metadata: process_center_click_metadata,
+        process_update_center: process_update_center
     };
 }());

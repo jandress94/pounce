@@ -14,6 +14,21 @@ const game = (function () {
             alert(winner + ' Pounced!');
             game.controller.handle_hand_done();
         });
+
+        socket.on('accept_request_move_to_center', function() {
+            console.log('request to move to center accepted');
+            game.controller.handle_center_move_feedback(true);
+        });
+
+        socket.on('reject_request_move_to_center', function() {
+            console.log('request to move to center rejected');
+            game.controller.handle_center_move_feedback(false);
+        });
+
+        socket.on('update_center', function(center_data) {
+            console.log('new center pile value', center_data);
+            game.controller.update_center(center_data);
+        });
     };
 
     return {

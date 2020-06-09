@@ -107,10 +107,36 @@ const start_game = function(room_id) {
     start_hand(room_id);
 };
 
-const handle_pounce = function(room_id, pouncer_socket) {;
+const handle_pounce = function(room_id, pouncer_socket) {
     for (let i = 0; i < room_data[room_id].num_players(); i++) {
         room_data[room_id].sockets[i].emit('round_done', pouncer_socket.player_name);
     }
+};
+
+const handle_request_for_center = function(room_id, requesting_socket, center_data) {
+    // TODO: race-conditions
+    let room = room_data[room_id];
+    let suit_idx = center_data.center_pile_coords[0];
+    let player_idx = center_data.center_pile_coords[1];
+    let old_val = center_data.center_card_old_val;
+
+    if (room.center_piles[suit_idx][player_idx] === old_val) {
+        room.center_piles[suit_idx][player_idx]++;
+
+        requesting_socket.emit('accept_request_move_to_center');
+
+        for (let i = 0; i < room.num_players(); i++) {
+            room.sockets[i].emit('update_center', {
+                center_pile_coords: center_data.center_pile_coords,
+                new_val: old_val + 1
+            });
+        }
+
+        // TODO: Scoring
+    } else {
+        requesting_socket.emit('reject_request_move_to_center');
+    }
+
 };
 
 // Tell Socket.io to start accepting connections
@@ -171,6 +197,11 @@ io.on('connection', function(socket){
     socket.on('pounce', function() {
         console.log('socket', socket.id, 'has pounced in room', socket.room_id);
         handle_pounce(socket.room_id, socket);
+    });
+
+    socket.on('request_move_to_center', function(data) {
+        console.log('socket', socket.id, 'is trying to move to the center with data', data);
+        handle_request_for_center(socket.room_id, socket, data);
     });
 
     socket.on('disconnect', function(){

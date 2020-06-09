@@ -63,6 +63,16 @@ game.view.phaser = (function () {
         phaser_game = new Phaser.Game(config);
     };
 
+    const pause_game = function() {
+        phaser_game.scene.pause();
+        phaser_game.input.enabled = false;
+    };
+
+    const resume_game = function() {
+        phaser_game.scene.resume();
+        phaser_game.input.enabled = true;
+    };
+
     const preload = function () {
         this.load.atlasXML('cards', '/assets/imgs/playingCards.png', '/assets/imgs/playingCards.xml');
         this.load.atlasXML('card_backs', '/assets/imgs/playingCardBacks.png', '/assets/imgs/playingCardBacks.xml')
@@ -314,6 +324,8 @@ game.view.phaser = (function () {
 
     return {
         init_module: init_module,
-        create_game: create_game
+        create_game: create_game,
+        pause_game: pause_game,
+        resume_game: resume_game
     };
 }());

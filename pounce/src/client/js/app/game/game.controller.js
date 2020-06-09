@@ -28,7 +28,23 @@ game.controller = (function () {
     };
 
     const handle_move_to_center_pile = function(click_metadata, center_pile_coords) {
-        game.model.move_to_center_pile(click_metadata, center_pile_coords);
+        if (game.model.check_move_to_center(click_metadata, center_pile_coords)) {
+            game.model.set_center_click_metadata(click_metadata);
+            game.view.pause_game();
+            socket.emit('request_move_to_center', {
+                center_pile_coords: center_pile_coords,
+                center_card_old_val: game.model.get_center_piles()[center_pile_coords[0]][center_pile_coords[1]]
+            });
+        }
+    };
+
+    const handle_center_move_feedback = function(accepted) {
+        game.view.resume_game();
+        game.model.process_center_click_metadata(accepted);
+    };
+
+    const update_center = function(center_data) {
+        game.model.process_update_center(center_data);
     };
 
     return {
@@ -38,6 +54,8 @@ game.controller = (function () {
         register_pounce: register_pounce,
         handle_hand_done: handle_hand_done,
         handle_move_to_build_pile: handle_move_to_build_pile,
-        handle_move_to_center_pile: handle_move_to_center_pile
+        handle_move_to_center_pile: handle_move_to_center_pile,
+        handle_center_move_feedback: handle_center_move_feedback,
+        update_center: update_center
     };
 }());
