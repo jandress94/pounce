@@ -12,7 +12,7 @@ game.model = (function () {
         center_piles = null;
     };
 
-    const start_hand_w_deck = function(d) {
+    const start_hand_w_deck = function(d, num_players) {
         pounce_pile = [];
         for (let i = 0; i < 13; i++) {
             pounce_pile.push(d.cards.pop());
@@ -26,7 +26,10 @@ game.model = (function () {
         deck = [d.cards, []];
         center_piles = [];
         for (let i = 0; i < 4; i++) {
-            center_piles.push([0, 0, 0, 0, 0]);
+            center_piles.push([]);
+            for (let p = 0; p < num_players; p++) {
+                center_piles[i].push(0);
+            }
         }
     };
 

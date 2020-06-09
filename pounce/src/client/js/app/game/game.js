@@ -5,9 +5,9 @@ const game = (function () {
         game.model.init_module();
         game.view.init_module($container);
 
-        socket.on('start_hand', function(deck) {
-            console.log('starting new hand with deck', deck);
-            game.controller.start_hand(deck);
+        socket.on('start_hand', function(data) {
+            console.log('starting new hand with deck', data.deck);
+            game.controller.start_hand(data.deck, data.num_players);
         });
     };
 

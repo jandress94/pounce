@@ -75,13 +75,14 @@ const update_player_names = function(room_id) {
 
 const start_hand = function (room_id) {
     let decks = [];
-    for (let i = 0; i < room_id_to_sockets[room_id].length; i++) {
+    let num_players = room_id_to_sockets[room_id].length;
+    for (let i = 0; i < num_players; i++) {
         decks.push(new cards.Deck());
         shuffle(decks[i].cards);
     }
 
-    for (let i = 0; i < room_id_to_sockets[room_id].length; i++) {
-        room_id_to_sockets[room_id][i].emit('start_hand', decks[i]);
+    for (let i = 0; i < num_players; i++) {
+        room_id_to_sockets[room_id][i].emit('start_hand', { deck: decks[i], num_players: num_players });
     }
 };
 

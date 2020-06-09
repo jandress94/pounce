@@ -6,8 +6,8 @@ game.controller = (function () {
         socket = s;
     };
 
-    const start_hand = function(deck) {
-        game.model.start_hand_w_deck(deck);
+    const start_hand = function(deck, num_players) {
+        game.model.start_hand_w_deck(deck, num_players);
         game.view.create_initial_game();
     };
 
