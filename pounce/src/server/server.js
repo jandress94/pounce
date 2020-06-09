@@ -90,6 +90,13 @@ const start_game = function(room_id) {
     start_hand(room_id);
 };
 
+const handle_pounce = function(room_id, pouncer_socket) {
+    let num_players = room_id_to_sockets[room_id].length;
+    for (let i = 0; i < num_players; i++) {
+        room_id_to_sockets[room_id][i].emit('round_done', pouncer_socket.player_name);
+    }
+};
+
 // Tell Socket.io to start accepting connections
 io.on('connection', function(socket){
     console.log("New client has connected with id:",socket.id);
@@ -143,6 +150,11 @@ io.on('connection', function(socket){
     socket.on('start_game', function () {
         console.log('socket', socket.id, 'is requesting to start the game in room', socket.room_id);
         start_game(socket.room_id);
+    });
+
+    socket.on('pounce', function() {
+        console.log('socket', socket.id, 'has pounced in room', socket.room_id);
+        handle_pounce(socket.room_id, socket);
     });
 
     socket.on('disconnect', function(){

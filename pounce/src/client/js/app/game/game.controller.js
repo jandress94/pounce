@@ -15,9 +15,19 @@ game.controller = (function () {
         game.model.cycle_deck();
     };
 
+    const register_pounce = function () {
+        socket.emit('pounce');
+    };
+
+    const handle_hand_done = function() {
+        game.view.clear_container();
+    };
+
     return {
         init_module: init_module,
         start_hand: start_hand,
-        handle_click_hand_draw: handle_click_hand_draw
+        handle_click_hand_draw: handle_click_hand_draw,
+        register_pounce: register_pounce,
+        handle_hand_done: handle_hand_done
     };
 }());

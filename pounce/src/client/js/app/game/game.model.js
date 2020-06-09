@@ -88,6 +88,7 @@ game.model = (function () {
             }
 
             build_piles[build_pile_idx].push(pounce_pile.shift());
+            check_for_win();
         } else if (move_type === 'deck_up_card') {
             if (!is_valid_build(build_pile_idx, deck[1][0])) {
                 return false;
@@ -123,6 +124,7 @@ game.model = (function () {
             }
 
             pounce_pile.shift();
+            check_for_win();
         } else if (move_type === 'deck_up_card') {
             if (!is_valid_center(center_pile_coords, deck[1][0])) {
                 return false;
@@ -143,6 +145,12 @@ game.model = (function () {
 
         center_piles[center_pile_coords[0]][center_pile_coords[1]] += 1;
         return true;
+    };
+
+    const check_for_win = function () {
+        if (pounce_pile.length === 0) {
+            game.controller.register_pounce();
+        }
     };
 
     const get_num_players = function() {

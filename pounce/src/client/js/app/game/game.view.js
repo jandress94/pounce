@@ -23,6 +23,7 @@ game.view = (function () {
 
     return {
         init_module: init_module,
-        create_initial_game: create_initial_game
+        create_initial_game: create_initial_game,
+        clear_container: clear_container
     };
 }());

@@ -9,6 +9,11 @@ const game = (function () {
             console.log('starting new hand with deck', data.deck);
             game.controller.start_hand(data.deck, data.num_players);
         });
+
+        socket.on('round_done', function(winner) {
+            alert(winner + ' Pounced!');
+            game.controller.handle_hand_done();
+        });
     };
 
     return {
