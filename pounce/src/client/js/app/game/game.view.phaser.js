@@ -189,10 +189,11 @@ game.view.phaser = (function () {
         }
 
         this.input.on('gameobjectdown', function (pointer, clicked_obj) {
-            console.log('click');
             if (clicked_obj === deck_down_card) {
                 game.controller.handle_click_hand_draw();
                 refresh_data.refresh_deck_up = true;
+
+                clean_current_click();
             } else if (current_click === null) {
                 if (build_bases_group.contains(clicked_obj)) {
                     return;
@@ -248,11 +249,17 @@ game.view.phaser = (function () {
                     }
                 }
 
-                current_click.clicked_obj.clearTint();
-                current_click = null;
+                clean_current_click();
             }
         });
     };
+
+    const clean_current_click = function () {
+        if (current_click !== null) {
+            current_click.clicked_obj.clearTint();
+            current_click = null;
+        }
+    }
 
     const update = function () {
         if (refresh_data.refresh_deck_up) {
