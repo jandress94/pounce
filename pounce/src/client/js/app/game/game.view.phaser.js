@@ -75,7 +75,7 @@ game.view.phaser = (function () {
         this.load.atlasXML('card_backs', '/assets/imgs/playingCardBacks.png', '/assets/imgs/playingCardBacks.xml')
 
         // create texture for the base of the build piles
-        let graphics = this.add.graphics().fillStyle(0x0000ff).fillRect(0, 0, BUILD_BASE_WIDTH, BUILD_BASE_HEIGHT);
+        let graphics = this.add.graphics().fillStyle(0xffffff).fillRect(0, 0, BUILD_BASE_WIDTH, BUILD_BASE_HEIGHT);
         graphics.generateTexture('build_base', BUILD_BASE_WIDTH, BUILD_BASE_HEIGHT);
         graphics.destroy();
 
