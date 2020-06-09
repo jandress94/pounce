@@ -101,6 +101,48 @@ game.model = (function () {
         }
         return true;
     };
+    
+    const is_valid_center = function (center_pile_coords, move_card) {
+        console.log(center_pile_coords, move_card);
+        let center_suit = cards.id_to_suit(center_pile_coords[0]);
+        let center_idx = center_pile_coords[1];
+
+        return center_suit.name === move_card.suit.name && center_piles[center_pile_coords[0]][center_pile_coords[1]] + 1 === move_card.rank;
+    };
+
+    const move_to_center_pile = function(move_metadata, center_pile_coords) {
+        let move_type = move_metadata.clicked_obj_type;
+        if (move_type === 'pounce_pile') {
+            if (!is_valid_center(center_pile_coords, pounce_pile[0])) {
+                return false;
+            }
+
+            pounce_pile.shift();
+        } else if (move_type === 'deck_up_card') {
+            if (!is_valid_center(center_pile_coords, deck[1][0])) {
+                return false;
+            }
+
+            deck[1].shift();
+        } else if (move_type === 'build_pile') {
+            let move_build_pile_idx = move_metadata.build_pile_idx;
+            let move_build_pile_card_idx = move_metadata.build_pile_card_idx;
+
+            if (move_build_pile_card_idx !== build_piles[move_build_pile_idx].length - 1 ||
+                !is_valid_center(center_pile_coords, build_piles[move_build_pile_idx][move_build_pile_card_idx])) {
+                return false;
+            }
+
+            build_piles[move_build_pile_idx].pop();
+        }
+
+        center_piles[center_pile_coords[0]][center_pile_coords[1]] += 1;
+        return true;
+    };
+
+    const get_num_players = function() {
+        return center_piles[0].length;
+    };
 
     return {
         init_module: init_module,
@@ -111,6 +153,8 @@ game.model = (function () {
         get_deck_up_cards: get_deck_up_cards,
         get_build_piles: get_build_piles,
         move_to_build_pile: move_to_build_pile,
-        get_center_piles: get_center_piles
+        get_center_piles: get_center_piles,
+        move_to_center_pile: move_to_center_pile,
+        get_num_players: get_num_players
     };
 }());
