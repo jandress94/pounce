@@ -52,6 +52,7 @@ join_room.view = (function () {
         });
 
         update_player_list(join_room_div);
+        set_name_input.focus();
     };
 
     const display_welcome = function () {
@@ -77,12 +78,12 @@ join_room.view = (function () {
         let start_game_button = document.createElement('button');
         start_game_div.appendChild(start_game_button);
         start_game_button.appendChild(document.createTextNode('Start Game'));
-        start_game_button.focus();
         $(start_game_button).click(function () {
             join_room.controller.handle_start_game();
         });
 
         update_player_list(welcome_div);
+        start_game_button.focus();
     };
 
     const update_player_list = function (player_list_container) {
