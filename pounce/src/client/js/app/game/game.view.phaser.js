@@ -34,13 +34,6 @@ game.view.phaser = (function () {
 
     let phaser_game;
 
-    let refresh_data = {
-        refresh_deck_up: false,
-        refresh_pounce: false,
-        refresh_build_piles: [],
-        refresh_center_pile_ids: []
-    };
-
     let deck_up_cards_group;
     let build_pile_groups;
 
@@ -191,8 +184,6 @@ game.view.phaser = (function () {
         this.input.on('gameobjectdown', function (pointer, clicked_obj) {
             if (clicked_obj === deck_down_card) {
                 game.controller.handle_click_hand_draw();
-                refresh_data.refresh_deck_up = true;
-
                 clean_current_click();
             } else if (current_click === null) {
                 if (build_bases_group.contains(clicked_obj)) {
@@ -226,27 +217,10 @@ game.view.phaser = (function () {
                 let center_pile_coords = clicked_obj.getData('center_pile_coords');
                 console.log(center_pile_coords);
 
-                let successfulMove = false;
                 if (build_pile_idx !== undefined) {
-                    if (game.model.move_to_build_pile(current_click.click_metadata, build_pile_idx)) {
-                        successfulMove = true;
-                        refresh_data.refresh_build_piles.push(build_pile_idx);
-                    }
+                    game.controller.handle_move_to_build_pile(current_click.click_metadata, build_pile_idx);
                 } else if (center_pile_coords !== undefined) {
-                    if (game.model.move_to_center_pile(current_click.click_metadata, center_pile_coords)) {
-                        successfulMove = true;
-                        refresh_data.refresh_center_pile_ids.push(center_pile_coords);
-                    }
-                }
-
-                if (successfulMove) {
-                    if (current_click.click_metadata.clicked_obj_type === 'pounce_pile') {
-                        refresh_data.refresh_pounce = true
-                    } else if (current_click.click_metadata.clicked_obj_type === 'deck_up_card') {
-                        refresh_data.refresh_deck_up = true;
-                    } else if (current_click.click_metadata.clicked_obj_type === 'build_pile') {
-                        refresh_data.refresh_build_piles.push(current_click.click_metadata.build_pile_idx);
-                    }
+                    game.controller.handle_move_to_center_pile(current_click.click_metadata, center_pile_coords);
                 }
 
                 clean_current_click();
@@ -259,9 +233,11 @@ game.view.phaser = (function () {
             current_click.clicked_obj.clearTint();
             current_click = null;
         }
-    }
+    };
 
     const update = function () {
+        let refresh_data = game.model.get_refresh_data();
+
         if (refresh_data.refresh_deck_up) {
             refresh_data.refresh_deck_up = false;
             let deck_up_cards = game.model.get_deck_up_cards();

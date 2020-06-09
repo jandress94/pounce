@@ -1,11 +1,18 @@
 game.model = (function () {
 
-    let NUM_POUNCE_CARDS = 2;
+    let NUM_POUNCE_CARDS = 13;
 
     let pounce_pile;
     let build_piles;
     let deck;
     let center_piles;
+
+    let refresh_data = {
+        refresh_deck_up: false,
+        refresh_pounce: false,
+        refresh_build_piles: [],
+        refresh_center_pile_ids: []
+    };
 
     const init_module = function () {
         pounce_pile = null;
@@ -55,6 +62,7 @@ game.model = (function () {
             deck[0].reverse();
             deck[1] = [];
         }
+        refresh_data.refresh_deck_up = true;
     };
 
     const get_deck_up_cards = function() {
@@ -88,6 +96,7 @@ game.model = (function () {
             }
 
             build_piles[build_pile_idx].push(pounce_pile.shift());
+            refresh_data.refresh_pounce = true;
             check_for_win();
         } else if (move_type === 'deck_up_card') {
             if (!is_valid_build(build_pile_idx, deck[1][0])) {
@@ -95,6 +104,7 @@ game.model = (function () {
             }
 
             build_piles[build_pile_idx].push(deck[1].shift());
+            refresh_data.refresh_deck_up = true;
         } else if (move_type === 'build_pile') {
             let move_build_pile_idx = move_metadata.build_pile_idx;
             let move_build_pile_card_idx = move_metadata.build_pile_card_idx;
@@ -104,16 +114,19 @@ game.model = (function () {
             }
 
             build_piles[build_pile_idx] = build_piles[build_pile_idx].concat(build_piles[move_build_pile_idx].splice(move_build_pile_card_idx, build_piles[move_build_pile_idx].length));
+            refresh_data.refresh_build_piles.push(move_build_pile_idx);
         }
+        refresh_data.refresh_build_piles.push(build_pile_idx);
         return true;
     };
     
     const is_valid_center = function (center_pile_coords, move_card) {
         console.log(center_pile_coords, move_card);
         let center_suit = cards.id_to_suit(center_pile_coords[0]);
-        let center_idx = center_pile_coords[1];
+        let suit_idx = center_pile_coords[0];
+        let player_idx = center_pile_coords[1];
 
-        return center_suit.name === move_card.suit.name && center_piles[center_pile_coords[0]][center_pile_coords[1]] + 1 === move_card.rank;
+        return center_suit.name === move_card.suit.name && center_piles[suit_idx][player_idx] + 1 === move_card.rank;
     };
 
     const move_to_center_pile = function(move_metadata, center_pile_coords) {
@@ -124,6 +137,7 @@ game.model = (function () {
             }
 
             pounce_pile.shift();
+            refresh_data.refresh_pounce = true;
             check_for_win();
         } else if (move_type === 'deck_up_card') {
             if (!is_valid_center(center_pile_coords, deck[1][0])) {
@@ -131,6 +145,7 @@ game.model = (function () {
             }
 
             deck[1].shift();
+            refresh_data.refresh_deck_up = true;
         } else if (move_type === 'build_pile') {
             let move_build_pile_idx = move_metadata.build_pile_idx;
             let move_build_pile_card_idx = move_metadata.build_pile_card_idx;
@@ -141,9 +156,11 @@ game.model = (function () {
             }
 
             build_piles[move_build_pile_idx].pop();
+            refresh_data.refresh_build_piles.push(move_build_pile_idx);
         }
 
         center_piles[center_pile_coords[0]][center_pile_coords[1]] += 1;
+        refresh_data.refresh_center_pile_ids.push(center_pile_coords);
         return true;
     };
 
@@ -157,6 +174,10 @@ game.model = (function () {
         return center_piles[0].length;
     };
 
+    const get_refresh_data = function () {
+        return refresh_data;
+    };
+
     return {
         init_module: init_module,
         start_hand_w_deck: start_hand_w_deck,
@@ -168,6 +189,7 @@ game.model = (function () {
         move_to_build_pile: move_to_build_pile,
         get_center_piles: get_center_piles,
         move_to_center_pile: move_to_center_pile,
-        get_num_players: get_num_players
+        get_num_players: get_num_players,
+        get_refresh_data: get_refresh_data
     };
 }());
