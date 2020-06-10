@@ -20,6 +20,7 @@ game.controller = (function () {
     };
 
     const handle_hand_done = function(winner) {
+        socket.emit('update_pounce_cards_remaining', game.model.get_num_pounce_cards_left());
         game.view.switch_to_pouncer_scene(winner);
     };
 

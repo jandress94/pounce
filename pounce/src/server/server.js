@@ -18,7 +18,7 @@ function sleep(ms) {
 
 const create_new_room = function() {
     let room_data = {
-        sockets: []
+        sockets: [],
     };
     room_data.num_players = function() { return room_data.sockets.length; };
     return room_data;
@@ -84,6 +84,11 @@ const update_player_names = function(room_id) {
 const start_hand = function (room_id) {
     let room = room_data[room_id];
 
+    room.num_center_cards = {};
+    for (let i = 0; i < room.num_players(); i++) {
+        room.num_center_cards[room.sockets[i].player_name] = 0;
+    }
+
     let decks = [];
     for (let i = 0; i < room.num_players(); i++) {
         decks.push(new cards.Deck());
@@ -104,16 +109,47 @@ const start_hand = function (room_id) {
 };
 
 const start_game = function(room_id) {
+    let room = room_data[room_id];
+    room.scores = {};
+
+    for (let i = 0; i < room.num_players(); i++) {
+        room.scores[room.sockets[i].player_name] = 0;
+    }
+
     start_hand(room_id);
 };
 
 const handle_pounce = function(room_id, pouncer_socket) {
+    room_data[room_id].pounce_cards_left = {};
+    room_data[room_id].num_pounce_cards_left_recorded = 0;
+
     for (let i = 0; i < room_data[room_id].num_players(); i++) {
         room_data[room_id].sockets[i].emit('hand_done', pouncer_socket.player_name);
     }
+};
 
-    for (let i = 0; i < room_data[room_id].num_players(); i++) {
-        room_data[room_id].sockets[i].emit('update_scores');
+const record_pounce_cards_left = function(socket, num_pounce_cards_left) {
+    let room = room_data[socket.room_id];
+    room.pounce_cards_left[socket.player_name] = num_pounce_cards_left;
+    room.num_pounce_cards_left_recorded += 1;
+
+    if (room.num_pounce_cards_left_recorded === room.num_players()) {
+        let score_update = {};
+        for (let i = 0; i < room.num_players(); i++) {
+            let name = room.sockets[i].player_name;
+            score_update[name] = {
+                start_score: room.scores[name],
+                num_center: room.num_center_cards[name],
+                num_pounce_left: room.pounce_cards_left[name]
+            };
+            score_update[name].end_score = score_update[name].start_score + score_update[name].num_center - score_update[name].num_pounce_left;
+
+            room.scores[name] = score_update[name].end_score;
+        }
+
+        for (let i = 0; i < room.num_players(); i++) {
+            room.sockets[i].emit('update_scores', score_update);
+        }
     }
 };
 
@@ -136,11 +172,10 @@ const handle_request_for_center = function(room_id, requesting_socket, center_da
             });
         }
 
-        // TODO: Scoring
+        room.num_center_cards[requesting_socket.player_name] += 1;
     } else {
         requesting_socket.emit('reject_request_move_to_center');
     }
-
 };
 
 // Tell Socket.io to start accepting connections
@@ -206,6 +241,11 @@ io.on('connection', function(socket){
     socket.on('request_move_to_center', function(data) {
         console.log('socket', socket.id, 'is trying to move to the center with data', data);
         handle_request_for_center(socket.room_id, socket, data);
+    });
+
+    socket.on('update_pounce_cards_remaining', function(num_pounce_cards_left) {
+        console.log('socket', socket.id, 'had', num_pounce_cards_left, 'pounce cards left');
+        record_pounce_cards_left(socket, num_pounce_cards_left);
     });
 
     socket.on('disconnect', function(){

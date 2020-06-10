@@ -30,8 +30,8 @@ const game = (function () {
             game.controller.update_center(center_data);
         });
 
-        socket.on('update_scores', function() {
-            console.log('scores updated');
+        socket.on('update_scores', function(scores_data) {
+            console.log('scores updated', scores_data);
             game.controller.update_scores();
         })
     };
