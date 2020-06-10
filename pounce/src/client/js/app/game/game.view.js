@@ -20,6 +20,10 @@ game.view = (function () {
         game.view.phaser_game.create_game(game_div);
     };
 
+    const switch_to_pouncer_scene = function (winner) {
+        game.view.phaser_game.switch_to_pouncer_scene(winner);
+    };
+
     const pause_game = function() {
         game.view.phaser_game.pause_game();
     };
@@ -33,6 +37,7 @@ game.view = (function () {
         create_initial_game: create_initial_game,
         clear_container: clear_container,
         pause_game: pause_game,
-        resume_game: resume_game
+        resume_game: resume_game,
+        switch_to_pouncer_scene: switch_to_pouncer_scene
     };
 }());

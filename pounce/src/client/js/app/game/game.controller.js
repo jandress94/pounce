@@ -19,8 +19,8 @@ game.controller = (function () {
         socket.emit('pounce');
     };
 
-    const handle_hand_done = function() {
-        game.view.clear_container();
+    const handle_hand_done = function(winner) {
+        game.view.switch_to_pouncer_scene(winner);
     };
 
     const handle_move_to_build_pile = function(click_metadata, build_pile_idx) {

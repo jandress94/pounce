@@ -10,9 +10,9 @@ const game = (function () {
             game.controller.start_hand(data.deck, data.num_players);
         });
 
-        socket.on('round_done', function(winner) {
-            alert(winner + ' Pounced!');
-            game.controller.handle_hand_done();
+        socket.on('hand_done', function(winner) {
+            console.log(winner + ' Pounced!');
+            game.controller.handle_hand_done(winner);
         });
 
         socket.on('accept_request_move_to_center', function() {

@@ -109,7 +109,7 @@ const start_game = function(room_id) {
 
 const handle_pounce = function(room_id, pouncer_socket) {
     for (let i = 0; i < room_data[room_id].num_players(); i++) {
-        room_data[room_id].sockets[i].emit('round_done', pouncer_socket.player_name);
+        room_data[room_id].sockets[i].emit('hand_done', pouncer_socket.player_name);
     }
 };
 
