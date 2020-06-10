@@ -32,12 +32,17 @@ game.view = (function () {
         game.view.phaser_game.resume_game();
     };
 
+    const display_scores = function() {
+        game.view.phaser_game.display_scores();
+    };
+
     return {
         init_module: init_module,
         create_initial_game: create_initial_game,
         clear_container: clear_container,
         pause_game: pause_game,
         resume_game: resume_game,
-        switch_to_pouncer_scene: switch_to_pouncer_scene
+        switch_to_pouncer_scene: switch_to_pouncer_scene,
+        display_scores: display_scores
     };
 }());

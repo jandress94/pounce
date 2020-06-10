@@ -111,6 +111,10 @@ const handle_pounce = function(room_id, pouncer_socket) {
     for (let i = 0; i < room_data[room_id].num_players(); i++) {
         room_data[room_id].sockets[i].emit('hand_done', pouncer_socket.player_name);
     }
+
+    for (let i = 0; i < room_data[room_id].num_players(); i++) {
+        room_data[room_id].sockets[i].emit('update_scores');
+    }
 };
 
 const handle_request_for_center = function(room_id, requesting_socket, center_data) {

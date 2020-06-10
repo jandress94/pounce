@@ -29,6 +29,11 @@ const game = (function () {
             console.log('new center pile value', center_data);
             game.controller.update_center(center_data);
         });
+
+        socket.on('update_scores', function() {
+            console.log('scores updated');
+            game.controller.update_scores();
+        })
     };
 
     return {

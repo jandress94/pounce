@@ -47,6 +47,10 @@ game.controller = (function () {
         game.model.process_update_center(center_data);
     };
 
+    const update_scores = function() {
+        game.view.display_scores();
+    };
+
     return {
         init_module: init_module,
         start_hand: start_hand,
@@ -56,6 +60,7 @@ game.controller = (function () {
         handle_move_to_build_pile: handle_move_to_build_pile,
         handle_move_to_center_pile: handle_move_to_center_pile,
         handle_center_move_feedback: handle_center_move_feedback,
-        update_center: update_center
+        update_center: update_center,
+        update_scores: update_scores
     };
 }());

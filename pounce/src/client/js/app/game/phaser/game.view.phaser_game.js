@@ -45,11 +45,33 @@ game.view.phaser_game = (function () {
         phaser_game.input.enabled = true;
     };
 
+    const switch_to_scores = function () {
+        phaser_game.scene.stop('scene_pouncer');
+        phaser_game.scene.start('scores');
+    };
+
+    const display_scores = function() {
+        if (game.view.scene_pouncer.get_has_displayed_long_enough()) {
+            switch_to_scores();
+        } else {
+            phaser_game.scene.getScene('scene_pouncer').time.addEvent({
+                delay: game.view.scene_pouncer.TIME_ON_PAGE_SEC * 1000,
+                callback: switch_to_scores,
+                loop: false,
+                repeat: 0,
+                startAt: 0,
+                timeScale: 1,
+                paused: false
+            });
+        }
+    };
+
     return {
         init_module: init_module,
         create_game: create_game,
         pause_game: pause_game,
         resume_game: resume_game,
-        switch_to_pouncer_scene: switch_to_pouncer_scene
+        switch_to_pouncer_scene: switch_to_pouncer_scene,
+        display_scores: display_scores
     };
 }());
