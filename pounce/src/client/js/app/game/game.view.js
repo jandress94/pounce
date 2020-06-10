@@ -32,8 +32,8 @@ game.view = (function () {
         game.view.phaser_game.resume_game();
     };
 
-    const display_scores = function() {
-        game.view.phaser_game.display_scores();
+    const display_scores = function(scores_data) {
+        game.view.phaser_game.display_scores(scores_data);
     };
 
     return {

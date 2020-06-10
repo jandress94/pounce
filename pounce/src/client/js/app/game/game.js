@@ -32,7 +32,7 @@ const game = (function () {
 
         socket.on('update_scores', function(scores_data) {
             console.log('scores updated', scores_data);
-            game.controller.update_scores();
+            game.controller.update_scores(scores_data);
         })
     };
 

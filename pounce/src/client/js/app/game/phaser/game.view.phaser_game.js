@@ -50,7 +50,9 @@ game.view.phaser_game = (function () {
         phaser_game.scene.start('scores');
     };
 
-    const display_scores = function() {
+    const display_scores = function(scores_data) {
+        game.view.scene_scores.update_scores(scores_data);
+
         if (game.view.scene_pouncer.get_has_displayed_long_enough()) {
             switch_to_scores();
         } else {

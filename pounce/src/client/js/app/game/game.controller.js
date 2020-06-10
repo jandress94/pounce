@@ -48,8 +48,8 @@ game.controller = (function () {
         game.model.process_update_center(center_data);
     };
 
-    const update_scores = function() {
-        game.view.display_scores();
+    const update_scores = function(scores_data) {
+        game.view.display_scores(scores_data);
     };
 
     return {
