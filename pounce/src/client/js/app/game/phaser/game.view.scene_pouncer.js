@@ -6,6 +6,8 @@ game.view.scene_pouncer = (function () {
     let CENTER_PILE_FONT = 'Arial';
     let CENTER_PILE_TEXT_SIZE = 50;
 
+    let TIME_ON_PAGE_SEC = 3;
+
     let winner;
 
     const init_module = function(w, h) {
@@ -28,8 +30,25 @@ game.view.scene_pouncer = (function () {
 
         create: function () {
             this.add.text(SCENE_WIDTH / 2, SCENE_HEIGHT / 2, winner, { fontFamily: CENTER_PILE_FONT, fontSize: CENTER_PILE_TEXT_SIZE, color: '#ffffff' }).setOrigin();
+
+            var timer = this.time.addEvent({
+                delay: TIME_ON_PAGE_SEC * 1000,
+                callback: function() {
+                    this.scene.stop('scene_pouncer');
+                    this.scene.start('scores');
+                },
+                args: [],
+                callbackScope: this,
+                loop: false,
+                repeat: 0,
+                startAt: 0,
+                timeScale: 1,
+                paused: false
+            });
         }
     });
+
+
 
     return {
         init_module: init_module,

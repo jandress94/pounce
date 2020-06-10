@@ -8,6 +8,7 @@ game.view.phaser_game = (function () {
     const init_module = function () {
         game.view.scene_pounce.init_module(SCENE_WIDTH, SCENE_HEIGHT);
         game.view.scene_pouncer.init_module(SCENE_WIDTH, SCENE_HEIGHT);
+        game.view.scene_scores.init_module(SCENE_WIDTH, SCENE_HEIGHT);
 
         phaser_game = null;
     };
@@ -20,7 +21,8 @@ game.view.phaser_game = (function () {
             parent: game_div,
             scene: [
                 game.view.scene_pounce.Scene_Pounce,
-                game.view.scene_pouncer.Scene_Pouncer
+                game.view.scene_pouncer.Scene_Pouncer,
+                game.view.scene_scores.Scene_Scores
             ]
         };
 

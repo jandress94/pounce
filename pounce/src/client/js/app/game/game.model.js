@@ -1,6 +1,6 @@
 game.model = (function () {
 
-    let NUM_POUNCE_CARDS = 13;
+    let NUM_POUNCE_CARDS = 1;
 
     let pounce_pile;
     let build_piles;
@@ -50,8 +50,8 @@ game.model = (function () {
         return pounce_pile.length > 0 ? pounce_pile[0] : null;
     };
 
-    const is_deck_empty = function () {
-        return deck[0].length === 0;
+    const get_num_pounce_cards_left = function () {
+        return pounce_pile.length;
     };
 
     const cycle_deck = function () {
@@ -198,7 +198,7 @@ game.model = (function () {
         init_module: init_module,
         start_hand_w_deck: start_hand_w_deck,
         get_first_pounce_card: get_first_pounce_card,
-        is_deck_empty: is_deck_empty,
+        get_num_pounce_cards_left: get_num_pounce_cards_left,
         cycle_deck: cycle_deck,
         get_deck_up_cards: get_deck_up_cards,
         get_build_piles: get_build_piles,
