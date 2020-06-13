@@ -131,8 +131,17 @@ const start_hand = function (room_id) {
     }
 };
 
-const start_game = function(room_id) {
+const start_game = function(socket) {
+    let room_id = socket.room_id;
     let room = room_data[room_id];
+
+    for (let i = 0; i < room.num_players(); i++) {
+        if (!room.sockets[i].hasOwnProperty('player_name')) {
+            socket.emit('start_game_rejected', 'Not all players have set their name.');
+            return;
+        }
+    }
+
     room.scores = {};
 
     for (let i = 0; i < room.num_players(); i++) {
@@ -295,7 +304,7 @@ io.on('connection', function(socket){
 
     socket.on('start_game', function () {
         console.log('socket', socket.id, 'is requesting to start the game in room', socket.room_id);
-        start_game(socket.room_id);
+        start_game(socket);
     });
 
     socket.on('next_hand', function () {

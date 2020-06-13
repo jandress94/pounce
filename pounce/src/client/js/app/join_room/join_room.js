@@ -36,6 +36,10 @@ const join_room = (function () {
             app.model.set_players(player_names);
             join_room.controller.handle_update_players();
         });
+
+        socket.on('start_game_rejected', function(reason) {
+            alert("Cannot start game: " + reason);
+        });
     };
 
     const start = function (room_id) {
