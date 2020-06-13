@@ -1,7 +1,7 @@
 game.model = (function () {
 
-    let NUM_POUNCE_CARDS = 1;
-    let POINTS_TO_WIN = 3;
+    let NUM_POUNCE_CARDS = 13;
+    let POINTS_TO_WIN = 100;
 
     let pounce_pile;
     let build_piles;
