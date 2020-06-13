@@ -77,6 +77,11 @@ game.controller = (function () {
         socket.emit('start_game');
     };
 
+    const handle_back_to_home_button = function() {
+        window.history.pushState(null, null, "/");
+        room_creator.start();
+    };
+
     return {
         init_module: init_module,
         start_hand: start_hand,
@@ -93,6 +98,7 @@ game.controller = (function () {
         handle_ditch: handle_ditch,
         handle_next_hand_button: handle_next_hand_button,
         handle_change_players_button: handle_change_players_button,
-        handle_play_again_button: handle_play_again_button
+        handle_play_again_button: handle_play_again_button,
+        handle_back_to_home_button: handle_back_to_home_button
     };
 }());

@@ -61,6 +61,13 @@ game.view = (function () {
             $(play_again_button).click(function() {
                 game.controller.handle_play_again_button();
             });
+
+            let back_to_home_button = document.createElement("button");
+            button_div.appendChild(back_to_home_button);
+            back_to_home_button.appendChild(document.createTextNode('Back to Home Page'));
+            $(back_to_home_button).click(function() {
+                game.controller.handle_back_to_home_button();
+            });
         } else {
             let next_hand_button = document.createElement('button');
             button_div.appendChild(next_hand_button);
