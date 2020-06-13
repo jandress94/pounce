@@ -60,7 +60,7 @@ game.view = (function () {
             button_div.appendChild(play_again_button);
             play_again_button.appendChild(document.createTextNode('Play Again'));
             $(play_again_button).click(function() {
-                console.log('play again');
+                game.controller.handle_play_again_button();
             });
         } else {
             let next_hand_button = document.createElement('button');

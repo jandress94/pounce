@@ -73,6 +73,10 @@ game.controller = (function () {
         socket.emit('change_players');
     };
 
+    const handle_play_again_button = function() {
+        socket.emit('start_game');
+    };
+
     return {
         init_module: init_module,
         start_hand: start_hand,
@@ -88,6 +92,7 @@ game.controller = (function () {
         handle_ditch_changed: handle_ditch_changed,
         handle_ditch: handle_ditch,
         handle_next_hand_button: handle_next_hand_button,
-        handle_change_players_button: handle_change_players_button
+        handle_change_players_button: handle_change_players_button,
+        handle_play_again_button: handle_play_again_button
     };
 }());
