@@ -21,10 +21,6 @@ join_room.controller = (function () {
         socket.emit('set_name', name);
     };
 
-    const display_welcome = function () {
-        join_room.view.display_welcome();
-    };
-
     const handle_update_players = function () {
         join_room.view.update_player_list();
     };
@@ -38,7 +34,6 @@ join_room.controller = (function () {
         request_to_join_room: request_to_join_room,
         display_join_room_page: display_join_room_page,
         handle_set_name: handle_set_name,
-        display_welcome: display_welcome,
         handle_update_players: handle_update_players,
         handle_start_game: handle_start_game
     };

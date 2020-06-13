@@ -31,6 +31,33 @@ join_room.view = (function () {
         join_room_div.appendChild(title_h1);
         title_h1.appendChild(document.createTextNode("Welcome to Pounce room " + app.model.get_room_id()));
 
+        let set_focus_element = null;
+
+        /**************************Name Welcome and Start Button**************************/
+        if (app.model.get_name() !== null) {
+            let welcome_div = document.createElement('div');
+            $container.append(welcome_div);
+
+            let name_div = document.createElement('div');
+            welcome_div.appendChild(name_div);
+
+            let welcome_h2 = document.createElement('h2');
+            name_div.appendChild(welcome_h2);
+            welcome_h2.appendChild(document.createTextNode('Welcome ' + app.model.get_name()));
+
+            let start_game_div = document.createElement('div');
+            welcome_div.appendChild(start_game_div);
+
+            let start_game_button = document.createElement('button');
+            start_game_div.appendChild(start_game_button);
+            start_game_button.appendChild(document.createTextNode('Start Game'));
+            $(start_game_button).click(function () {
+                join_room.controller.handle_start_game();
+            });
+
+            set_focus_element = start_game_button;
+        }
+
         /*************************************Set Name*************************************/
 
         let set_name_div = document.createElement('div');
@@ -51,39 +78,15 @@ join_room.view = (function () {
             }
         });
 
+        if (set_focus_element === null) {
+            set_focus_element = set_name_input;
+        }
+
         update_player_list(join_room_div);
-        set_name_input.focus();
-    };
 
-    const display_welcome = function () {
-        clear_container();
-
-        let welcome_div = document.createElement('div');
-        $container.append(welcome_div);
-
-        let title_h2 = document.createElement('h2');
-        welcome_div.appendChild(title_h2);
-        title_h2.appendChild(document.createTextNode("Welcome to Pounce room " + app.model.get_room_id()));
-
-        let name_div = document.createElement('div');
-        welcome_div.appendChild(name_div);
-
-        let welcome_h2 = document.createElement('h2');
-        name_div.appendChild(welcome_h2);
-        welcome_h2.appendChild(document.createTextNode('Welcome ' + app.model.get_name()));
-
-        let start_game_div = document.createElement('div');
-        welcome_div.appendChild(start_game_div);
-
-        let start_game_button = document.createElement('button');
-        start_game_div.appendChild(start_game_button);
-        start_game_button.appendChild(document.createTextNode('Start Game'));
-        $(start_game_button).click(function () {
-            join_room.controller.handle_start_game();
-        });
-
-        update_player_list(welcome_div);
-        start_game_button.focus();
+        if (set_focus_element !== null) {
+            set_focus_element.focus();
+        }
     };
 
     const update_player_list = function (player_list_container) {
@@ -123,7 +126,6 @@ join_room.view = (function () {
         init_module: init_module,
         display_joining_room_page: display_joining_room_page,
         display_join_room_page: display_join_room_page,
-        display_welcome: display_welcome,
         update_player_list: update_player_list
     };
 }());

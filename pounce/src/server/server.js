@@ -225,12 +225,19 @@ const handle_request_for_center = function(room_id, requesting_socket, center_da
     }
 };
 
+const create_confirm_room_join_data = function (socket) {
+    return {
+        room_id: socket.room_id,
+        player_name: socket.hasOwnProperty('player_name') ? socket.player_name : null
+    }
+};
+
 const handle_change_players = function(room_id) {
     let room = room_data[room_id];
     room.state = STATE_JOINING;
 
     for (let i = 0; i < room.num_players(); i++) {
-        room.sockets[i].emit('confirm_room_join', room_id);
+        room.sockets[i].emit('confirm_room_join', create_confirm_room_join_data(room.sockets[i]));
         send_player_name_update(room_id);
     }
 };
@@ -256,7 +263,7 @@ io.on('connection', function(socket){
             room_data[room_id].sockets.push(socket);
             console.log('socket', socket.id, 'joined room', room_id);
 
-            socket.emit('confirm_room_join', room_id);
+            socket.emit('confirm_room_join', create_confirm_room_join_data(socket));
 
             if (room_data[room_id].state === STATE_JOINING) {
                 send_player_name_update(room_id);

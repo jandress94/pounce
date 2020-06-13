@@ -11,9 +11,14 @@ const join_room = (function () {
             start(room_id);
         });
 
-        socket.on('confirm_room_join', function(room_id) {
-            console.log('received confirmation for joining room', room_id);
-            app.model.set_room_id(room_id);
+        socket.on('confirm_room_join', function(join_data) {
+            console.log('received confirmation for joining room', join_data.room_id, 'with name', join_data.player_name);
+            app.model.set_room_id(join_data.room_id);
+
+            if (join_data.player_name !== null) {
+                app.model.set_name(join_data.player_name);
+            }
+
             join_room.controller.display_join_room_page();
         });
 
@@ -23,7 +28,7 @@ const join_room = (function () {
 
         socket.on('accept_name', function(name) {
             app.model.set_name(name);
-            join_room.controller.display_welcome();
+            join_room.controller.display_join_room_page();
         });
 
         socket.on('update_players', function(player_names) {
