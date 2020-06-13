@@ -287,20 +287,36 @@ const handle_set_name = function(socket, name) {
     }
 };
 
-const handle_disconnect = function(socket) {
-    if (socket.hasOwnProperty('room_id')) {
-        for (let i = 0; i < room_data[socket.room_id].num_players(); i++) {
-            if (socket.id === room_data[socket.room_id].sockets[i].id) {
-                // remove this socket
-                room_data[socket.room_id].sockets.splice(i, 1);
-                break;
-            }
-        }
+const remove_socket_from_room = function(socket) {
+    let room = room_data[socket.room_id];
 
-        if (room_data[socket.room_id].state === STATE_JOINING) {
-            send_player_name_update(socket.room_id);
+    for (let i = 0; i < room.num_players(); i++) {
+        if (socket.id === room.sockets[i].id) {
+            // remove this socket
+            room.sockets.splice(i, 1);
+            break;
         }
     }
+};
+
+const handle_leave_room = function(socket) {
+    if (socket.hasOwnProperty('room_id')) {
+        let room_id = socket.room_id;
+        let room = room_data[room_id];
+
+        socket.leave(room_id);
+        remove_socket_from_room(socket);
+
+        delete socket.room_id;
+
+        if (room.state === STATE_JOINING) {
+            send_player_name_update(room_id);
+        }
+    }
+};
+
+const handle_disconnect = function(socket) {
+    handle_leave_room(socket);
 };
 
 // Tell Socket.io to start accepting connections
@@ -356,6 +372,11 @@ io.on('connection', function(socket){
     socket.on('change_players', function() {
         console.log('socket', socket.id, 'is changing the players in their room');
         handle_change_players(socket.room_id);
+    });
+
+    socket.on('leave_room', function() {
+        console.log('socket', socket.id, 'is leaving their current room');
+        handle_leave_room(socket);
     });
 
     socket.on('disconnect', function(){

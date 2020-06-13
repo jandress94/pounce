@@ -77,8 +77,7 @@ game.controller = (function () {
         socket.emit('start_game');
     };
 
-    const handle_back_to_home_button = function() {
-        // TODO: remove self from old room
+        socket.emit('leave_room');
         window.history.pushState(null, null, "/");
         room_creator.start();
     };
