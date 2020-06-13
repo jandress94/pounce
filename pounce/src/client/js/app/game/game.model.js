@@ -213,14 +213,28 @@ game.model = (function () {
          refresh_data.refresh_center_pile_ids.push(center_pile_coords);
     };
 
-    const set_ditch = function(val) {
+    const set_ditch = function(val, should_handle_change=true) {
         ready_for_ditch = val;
         refresh_data.refresh_ditch = ready_for_ditch;
-        game.controller.handle_ditch_changed(ready_for_ditch);
+
+        if (should_handle_change) {
+            game.controller.handle_ditch_changed(ready_for_ditch);
+        }
     };
 
     const flip_ditch = function() {
         set_ditch(!ready_for_ditch);
+    };
+
+    const ditch = function() {
+        set_ditch(false, false);
+
+        deck[1].reverse();
+        deck[0] = deck[1].concat(deck[0]);
+        deck[0].push(deck[0].shift());
+        deck[1] = [];
+
+        refresh_data.refresh_deck_up = true;
     };
 
     return {
@@ -239,6 +253,7 @@ game.model = (function () {
         set_center_click_metadata: set_center_click_metadata,
         process_center_click_metadata: process_center_click_metadata,
         process_update_center: process_update_center,
-        flip_ditch: flip_ditch
+        flip_ditch: flip_ditch,
+        ditch: ditch
     };
 }());

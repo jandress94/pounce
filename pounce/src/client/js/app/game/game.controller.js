@@ -61,6 +61,10 @@ game.controller = (function () {
         socket.emit('set_ditch', new_ditch_val);
     };
 
+    const handle_ditch = function() {
+        game.model.ditch();
+    };
+
     return {
         init_module: init_module,
         start_hand: start_hand,
@@ -73,6 +77,7 @@ game.controller = (function () {
         update_center: update_center,
         update_scores: update_scores,
         handle_ditch_button_clicked: handle_ditch_button_clicked,
-        handle_ditch_changed: handle_ditch_changed
+        handle_ditch_changed: handle_ditch_changed,
+        handle_ditch: handle_ditch
     };
 }());

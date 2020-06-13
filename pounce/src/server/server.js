@@ -85,8 +85,10 @@ const start_hand = function (room_id) {
     let room = room_data[room_id];
 
     room.num_center_cards = {};
+    room.ditches = {};
     for (let i = 0; i < room.num_players(); i++) {
         room.num_center_cards[room.sockets[i].player_name] = 0;
+        room.ditches[room.sockets[i].player_name] = false;
     }
 
     let decks = [];
@@ -117,6 +119,28 @@ const start_game = function(room_id) {
     }
 
     start_hand(room_id);
+};
+
+const handle_ditch_update = function(room_id, socket, new_ditch_val) {
+    let room = room_data[room_id];
+    room.ditches[socket.player_name] = new_ditch_val;
+
+    if (new_ditch_val) {
+        let should_ditch = true;
+        for (let player_name in room.ditches) {
+            if (room.ditches.hasOwnProperty(player_name) && !room.ditches[player_name]) {
+                should_ditch = false;
+                break;
+            }
+        }
+
+        if (should_ditch) {
+            for (let i = 0; i < room.num_players(); i++) {
+                room.sockets[i].emit('ditch');
+                room.ditches[room.sockets[i].player_name] = false;
+            }
+        }
+    }
 };
 
 const handle_pounce = function(room_id, pouncer_socket) {
@@ -246,6 +270,11 @@ io.on('connection', function(socket){
     socket.on('update_pounce_cards_remaining', function(num_pounce_cards_left) {
         console.log('socket', socket.id, 'had', num_pounce_cards_left, 'pounce cards left');
         record_pounce_cards_left(socket, num_pounce_cards_left);
+    });
+
+    socket.on('set_ditch', function(new_ditch_val) {
+        console.log('socket', socket.id, 'is setting their ditch value to', new_ditch_val);
+        handle_ditch_update(socket.room_id, socket, new_ditch_val);
     });
 
     socket.on('disconnect', function(){
