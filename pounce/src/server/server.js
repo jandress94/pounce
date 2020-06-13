@@ -90,9 +90,7 @@ const send_player_name_update = function(room_id, socket = null) {
     if (socket !== null) {
         socket.emit('update_players', all_player_names);
     } else {
-        for (let i = 0; i < room.num_players(); i++) {
-            room.sockets[i].emit('update_players', all_player_names);
-        }
+        io.to(room_id).emit('update_players', all_player_names);
     }
 };
 
@@ -166,9 +164,9 @@ const handle_ditch_update = function(room_id, socket, new_ditch_val) {
 
         if (should_ditch) {
             for (let i = 0; i < room.num_players(); i++) {
-                room.sockets[i].emit('ditch');
                 room.ditches[room.sockets[i].player_name] = false;
             }
+            io.to(room_id).emit('ditch');
         }
     }
 };
@@ -179,9 +177,7 @@ const handle_pounce = function(room_id, pouncer_socket) {
     room.pounce_cards_left = {};
     room.num_pounce_cards_left_recorded = 0;
 
-    for (let i = 0; i < room.num_players(); i++) {
-        room.sockets[i].emit('hand_done', pouncer_socket.player_name);
-    }
+    io.to(room_id).emit('hand_done', pouncer_socket.player_name);
 };
 
 const record_pounce_cards_left = function(socket, num_pounce_cards_left) {
@@ -203,9 +199,7 @@ const record_pounce_cards_left = function(socket, num_pounce_cards_left) {
             room.scores[name] = score_update[name].end_score;
         }
 
-        for (let i = 0; i < room.num_players(); i++) {
-            room.sockets[i].emit('update_scores', score_update);
-        }
+        io.to(socket.room_id).emit('update_scores', score_update);
     }
 };
 
@@ -221,12 +215,10 @@ const handle_request_for_center = function(room_id, requesting_socket, center_da
 
         requesting_socket.emit('accept_request_move_to_center');
 
-        for (let i = 0; i < room.num_players(); i++) {
-            room.sockets[i].emit('update_center', {
-                center_pile_coords: center_data.center_pile_coords,
-                new_val: old_val + 1
-            });
-        }
+        io.to(room_id).emit('update_center', {
+            center_pile_coords: center_data.center_pile_coords,
+            new_val: old_val + 1
+        });
 
         room.num_center_cards[requesting_socket.player_name] += 1;
     } else {
@@ -251,55 +243,84 @@ const handle_change_players = function(room_id) {
     }
 };
 
+const handle_request_room_join = function(socket, room_id) {
+    if (room_data.hasOwnProperty(room_id)) {
+        // TODO: if already in room, leave.
+        socket.join(room_id);
+        socket.room_id = room_id;
+        room_data[room_id].sockets.push(socket);
+        console.log('socket', socket.id, 'joined room', room_id);
+
+        socket.emit('confirm_room_join', create_confirm_room_join_data(socket));
+
+        if (room_data[room_id].state === STATE_JOINING) {
+            send_player_name_update(room_id);
+        }
+    }
+};
+
+const handle_create_new_room = function(socket) {
+    console.log('New Room Request from client with id:', socket.id);
+    const room_id = get_new_room_id();
+    room_data[room_id] = create_new_room();
+
+    console.log('New room created with id:', room_id);
+    socket.emit('new_room_created', room_id);
+};
+
+const handle_set_name = function(socket, name) {
+    // TODO: race-conditions
+    for (let i = 0; i < room_data[socket.room_id].num_players(); i++) {
+        const s = room_data[socket.room_id].sockets[i];
+        if (s.hasOwnProperty('player_name') && s.player_name === name) {
+            console.log('found the requested name', name, 'from socket', socket.id, 'already taken, rejecting');
+            socket.emit('reject_name');
+            return;
+        }
+    }
+    console.log('accepting the requested name', name, 'for socket', socket.id);
+    socket.player_name = name;
+    socket.emit('accept_name', name);
+
+    if (room_data[socket.room_id].state === STATE_JOINING) {
+        send_player_name_update(socket.room_id);
+    }
+};
+
+const handle_disconnect = function(socket) {
+    if (socket.hasOwnProperty('room_id')) {
+        for (let i = 0; i < room_data[socket.room_id].num_players(); i++) {
+            if (socket.id === room_data[socket.room_id].sockets[i].id) {
+                // remove this socket
+                room_data[socket.room_id].sockets.splice(i, 1);
+                break;
+            }
+        }
+
+        if (room_data[socket.room_id].state === STATE_JOINING) {
+            send_player_name_update(socket.room_id);
+        }
+    }
+};
+
 // Tell Socket.io to start accepting connections
 io.on('connection', function(socket){
-    console.log("New client has connected with id:",socket.id);
+    console.log("New client has connected with id:", socket.id);
 
     // Listen for a new room request
     socket.on('create_new_room', function(){
-        console.log('New Room Request from client with id:', socket.id);
-        const room_id = get_new_room_id();
-        room_data[room_id] = create_new_room();
-
-        console.log('New room created with id:', room_id);
-        socket.emit('new_room_created', room_id);
+        handle_create_new_room(socket);
     });
 
     // Listen for request to join a room
     socket.on('request_room_join', function (room_id) {
-        if (room_data.hasOwnProperty(room_id)) {
-            socket.room_id = room_id;
-            room_data[room_id].sockets.push(socket);
-            console.log('socket', socket.id, 'joined room', room_id);
-
-            socket.emit('confirm_room_join', create_confirm_room_join_data(socket));
-
-            if (room_data[room_id].state === STATE_JOINING) {
-                send_player_name_update(room_id);
-            }
-        }
+        handle_request_room_join(socket, room_id);
     });
 
     // Listen for setting name
     socket.on('set_name', function (name) {
         console.log('socket', socket.id, 'is requesting name', name);
-
-        // TODO: race-conditions
-        for (let i = 0; i < room_data[socket.room_id].num_players(); i++) {
-            const s = room_data[socket.room_id].sockets[i];
-            if (s.hasOwnProperty('player_name') && s.player_name === name) {
-                console.log('found the requested name', name, 'from socket', socket.id, 'already taken, rejecting');
-                socket.emit('reject_name');
-                return;
-            }
-        }
-        console.log('accepting the requested name', name, 'for socket', socket.id);
-        socket.player_name = name;
-        socket.emit('accept_name', name);
-
-        if (room_data[socket.room_id].state === STATE_JOINING) {
-            send_player_name_update(socket.room_id);
-        }
+        handle_set_name(socket, name);
     });
 
     socket.on('start_game', function () {
@@ -338,19 +359,7 @@ io.on('connection', function(socket){
     });
 
     socket.on('disconnect', function(){
-        if (socket.hasOwnProperty('room_id')) {
-            for (let i = 0; i < room_data[socket.room_id].num_players(); i++) {
-                if (socket.id === room_data[socket.room_id].sockets[i].id) {
-                    // remove this socket
-                    room_data[socket.room_id].sockets.splice(i, 1);
-                    break;
-                }
-            }
-
-            if (room_data[socket.room_id].state === STATE_JOINING) {
-                send_player_name_update(socket.room_id);
-            }
-        }
+        handle_disconnect(socket);
     });
 });
 

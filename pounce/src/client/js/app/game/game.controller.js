@@ -78,6 +78,7 @@ game.controller = (function () {
     };
 
     const handle_back_to_home_button = function() {
+        // TODO: remove self from old room
         window.history.pushState(null, null, "/");
         room_creator.start();
     };
