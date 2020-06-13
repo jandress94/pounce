@@ -33,15 +33,23 @@ game.view.scene_scores = (function () {
         create: function () {
             let y = START_Y;
 
-            let graphics = this.add.graphics().lineStyle(5, 0xffffff);
-            let line_x = NAME_X + NAME_DELTA_X * 0.67;
-            let line_y = START_Y + HEADER_DELTA_Y * 0.5;
-            graphics.lineBetween(line_x, START_Y - 50, line_x, SCENE_HEIGHT - 50);
-            graphics.lineBetween(50, line_y, SCENE_WIDTH - 50, line_y);
+            let graphics = this.add.graphics();
 
             create_text_row(this, y, ["Player", "Start\nScore", "Center\nCards", "Pounce\nLeft", "End\nScore"]);
 
             y += HEADER_DELTA_Y;
+
+            let highest_winner = null;
+            for (var p in scores_data) {
+                if (scores_data.hasOwnProperty(p)) {
+                    let scores = scores_data[p];
+                    if (scores.end_score >= game.model.NUM_POINTS_TO_WIN && (highest_winner === null || scores.end_score > highest_winner)) {
+                        highest_winner = scores.end_score;
+                    }
+                }
+            }
+
+            graphics.fillStyle(0x0000ff);
 
             for (var p in scores_data) {
                 if (scores_data.hasOwnProperty(p)) {
@@ -49,6 +57,11 @@ game.view.scene_scores = (function () {
                     if (p.length > 12) {
                         p = p.substr(0, 12) + "...";
                     }
+
+                    if (highest_winner !== null && highest_winner === scores.end_score) {
+                        graphics.fillRect(0, y - ROW_DELTA_Y / 2, SCENE_WIDTH, ROW_DELTA_Y);
+                    }
+
                     create_text_row(this, y, [
                         p,
                         scores.start_score,
@@ -60,6 +73,12 @@ game.view.scene_scores = (function () {
                     y += ROW_DELTA_Y;
                 }
             }
+
+            graphics.lineStyle(5, 0xffffff);
+            let line_x = NAME_X + NAME_DELTA_X * 0.67;
+            let line_y = START_Y + HEADER_DELTA_Y * 0.5;
+            graphics.lineBetween(line_x, START_Y - 50, line_x, SCENE_HEIGHT - 50);
+            graphics.lineBetween(50, line_y, SCENE_WIDTH - 50, line_y);
         }
     });
 
