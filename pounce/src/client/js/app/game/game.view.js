@@ -48,18 +48,18 @@ game.view = (function () {
         }
 
         if (game_finished) {
-            let change_players_button = document.createElement('button');
-            button_div.appendChild(change_players_button);
-            change_players_button.appendChild(document.createTextNode('Change Players'));
-            $(change_players_button).click(function() {
-                game.controller.handle_change_players_button();
-            });
-
             let play_again_button = document.createElement('button');
             button_div.appendChild(play_again_button);
             play_again_button.appendChild(document.createTextNode('Play Again'));
             $(play_again_button).click(function() {
                 game.controller.handle_play_again_button();
+            });
+
+            let change_players_button = document.createElement('button');
+            button_div.appendChild(change_players_button);
+            change_players_button.appendChild(document.createTextNode('Change Players'));
+            $(change_players_button).click(function() {
+                game.controller.handle_change_players_button();
             });
 
             let back_to_home_button = document.createElement("button");
