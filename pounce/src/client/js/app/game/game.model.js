@@ -6,15 +6,11 @@ game.model = (function () {
     let build_piles;
     let deck;
     let center_piles;
+    let ready_for_ditch = false;
 
     let center_click_metadata;
 
-    let refresh_data = {
-        refresh_deck_up: false,
-        refresh_pounce: false,
-        refresh_build_piles: [],
-        refresh_center_pile_ids: []
-    };
+    let refresh_data;
 
     const init_module = function () {
         pounce_pile = null;
@@ -23,6 +19,17 @@ game.model = (function () {
         center_piles = null;
 
         center_click_metadata = null;
+        reset_refresh_data();
+    };
+
+    const reset_refresh_data = function() {
+        refresh_data = {
+            refresh_deck_up: false,
+            refresh_pounce: false,
+            refresh_build_piles: [],
+            refresh_center_pile_ids: [],
+            refresh_ditch: null
+        };
     };
 
     const start_hand_w_deck = function(d, num_players) {
@@ -44,6 +51,10 @@ game.model = (function () {
                 center_piles[i].push(0);
             }
         }
+
+        center_click_metadata = null;
+        reset_refresh_data();
+        ready_for_ditch = false;
     };
 
     const get_first_pounce_card = function() {
@@ -194,6 +205,12 @@ game.model = (function () {
          refresh_data.refresh_center_pile_ids.push(center_pile_coords);
     };
 
+    const flip_ditch = function() {
+        ready_for_ditch = !ready_for_ditch;
+        refresh_data.refresh_ditch = ready_for_ditch;
+        return ready_for_ditch;
+    };
+
     return {
         init_module: init_module,
         start_hand_w_deck: start_hand_w_deck,
@@ -209,6 +226,7 @@ game.model = (function () {
         get_refresh_data: get_refresh_data,
         set_center_click_metadata: set_center_click_metadata,
         process_center_click_metadata: process_center_click_metadata,
-        process_update_center: process_update_center
+        process_update_center: process_update_center,
+        flip_ditch: flip_ditch
     };
 }());

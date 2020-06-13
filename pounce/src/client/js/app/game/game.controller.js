@@ -52,6 +52,12 @@ game.controller = (function () {
         game.view.display_scores(scores_data);
     };
 
+    const handle_ditch_button_clicked = function() {
+        let new_ditch_val = game.model.flip_ditch();
+
+        socket.emit('set_ditch', new_ditch_val);
+    };
+
     return {
         init_module: init_module,
         start_hand: start_hand,
@@ -62,6 +68,7 @@ game.controller = (function () {
         handle_move_to_center_pile: handle_move_to_center_pile,
         handle_center_move_feedback: handle_center_move_feedback,
         update_center: update_center,
-        update_scores: update_scores
+        update_scores: update_scores,
+        handle_ditch_button_clicked: handle_ditch_button_clicked
     };
 }());

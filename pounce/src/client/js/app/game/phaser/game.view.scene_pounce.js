@@ -30,6 +30,15 @@ game.view.scene_pounce = (function () {
     let CENTER_PILE_FONT = 'Arial';
     let CENTER_PILE_TEXT_SIZE = 50;
 
+    let ditch_button;
+    let DITCH_BUTTON_X = DECK_DOWN_X;
+    let DITCH_BUTTON_Y =  BUILD_PILE_START_Y;
+    let DITCH_BUTTON_WIDTH = 75;
+    let DITCH_BUTTON_HEIGHT = 25;
+    let DITCH_BUTTON_FONT_SIZE = 24;
+    let DITCH_UNSELECTED_TINT = 0xff0000;
+    let DITCH_SELECTED_TINT = 0x00ff00;
+
     let SELECTED_TINT = 0xff9999;
 
     let deck_up_cards_group;
@@ -121,10 +130,19 @@ game.view.scene_pounce = (function () {
                 }
             }
 
+            // create ditch button
+            ditch_button = this.add.image(DITCH_BUTTON_X, DITCH_BUTTON_Y, 'build_base');
+            ditch_button.setScale(DITCH_BUTTON_WIDTH / ditch_button.width, DITCH_BUTTON_HEIGHT / ditch_button.height);
+            ditch_button.setInteractive();
+            ditch_button.setTint(DITCH_UNSELECTED_TINT);
+            this.add.text(DITCH_BUTTON_X, DITCH_BUTTON_Y, "Ditch", { fontFamily: CENTER_PILE_FONT, fontSize: DITCH_BUTTON_FONT_SIZE, color: '#000000' }).setOrigin();
+
             this.input.on('gameobjectdown', function (pointer, clicked_obj) {
                 if (clicked_obj === deck_down_card) {
                     game.controller.handle_click_hand_draw();
                     clean_current_click();
+                } else if (clicked_obj === ditch_button) {
+                    game.controller.handle_ditch_button_clicked();
                 } else if (current_click === null) {
                     if (build_bases_group.contains(clicked_obj)) {
                         return;
@@ -238,6 +256,15 @@ game.view.scene_pounce = (function () {
                     );
                     refresh_data.refresh_center_pile_ids.pop();
                 }
+            }
+
+            if (refresh_data.refresh_ditch !== null) {
+                if (refresh_data.refresh_ditch) {
+                    ditch_button.setTint(DITCH_SELECTED_TINT);
+                } else {
+                    ditch_button.setTint(DITCH_UNSELECTED_TINT);
+                }
+                refresh_data.refresh_ditch = null;
             }
         }
     });
