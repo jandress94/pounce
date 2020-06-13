@@ -9,6 +9,9 @@ var shuffle = require('shuffle-array');
 var cards = require('../shared/js/cards');
 
 
+let STATE_JOINING = 'joining';
+let STATE_PLAYING = 'playing';
+
 const DEBUG = true;
 
 
@@ -19,8 +22,10 @@ function sleep(ms) {
 const create_new_room = function() {
     let room_data = {
         sockets: [],
+        state: STATE_JOINING
     };
     room_data.num_players = function() { return room_data.sockets.length; };
+
     return room_data;
 };
 
@@ -72,7 +77,7 @@ const get_new_room_id = function(id_len = 5) {
     return Math.random().toString(36).substring(2, 2 + id_len);
 };
 
-const update_player_names = function(room_id) {
+const send_player_name_update = function(room_id) {
     let all_player_names = [];
     for (let i = 0; i < room_data[room_id].num_players(); i++) {
         const s = room_data[room_id].sockets[i];
@@ -113,6 +118,7 @@ const start_hand = function (room_id) {
 const start_game = function(room_id) {
     let room = room_data[room_id];
     room.scores = {};
+    room.state = STATE_PLAYING;
 
     for (let i = 0; i < room.num_players(); i++) {
         room.scores[room.sockets[i].player_name] = 0;
@@ -223,12 +229,11 @@ io.on('connection', function(socket){
             room_data[room_id].sockets.push(socket);
             console.log('socket', socket.id, 'joined room', room_id);
 
-            // TODO: remove sleep
-            sleep(500).then(() => {
-                socket.emit('confirm_room_join', room_id);
+            socket.emit('confirm_room_join', room_id);
 
-                update_player_names(room_id);
-            });
+            if (room_data[room_id].state === STATE_JOINING) {
+                send_player_name_update(room_id);
+            }
         }
     });
 
@@ -249,7 +254,9 @@ io.on('connection', function(socket){
         socket.player_name = name;
         socket.emit('accept_name', name);
 
-        update_player_names(socket.room_id);
+        if (room_data[socket.room_id].state === STATE_JOINING) {
+            send_player_name_update(socket.room_id);
+        }
     });
 
     socket.on('start_game', function () {
@@ -286,7 +293,10 @@ io.on('connection', function(socket){
                     break;
                 }
             }
-            update_player_names(socket.room_id);
+
+            if (room_data[socket.room_id].state === STATE_JOINING) {
+                send_player_name_update(socket.room_id);
+            }
         }
     });
 });
