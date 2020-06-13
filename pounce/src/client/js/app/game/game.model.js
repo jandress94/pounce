@@ -1,6 +1,6 @@
 game.model = (function () {
 
-    let NUM_POUNCE_CARDS = 13;
+    let NUM_POUNCE_CARDS = 1;
 
     let pounce_pile;
     let build_piles;

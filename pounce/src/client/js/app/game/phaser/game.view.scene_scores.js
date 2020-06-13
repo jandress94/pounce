@@ -3,8 +3,14 @@ game.view.scene_scores = (function () {
     let SCENE_WIDTH;
     let SCENE_HEIGHT;
 
-    let CENTER_PILE_FONT = 'Arial';
-    let CENTER_PILE_TEXT_SIZE = 12;
+    let NAME_X = 150;
+    let NAME_DELTA_X = 200;
+    let NUMBER_DELTA_X = 120;
+    let START_Y = 150;
+    let HEADER_DELTA_Y = 100;
+    let ROW_DELTA_Y = 50;
+
+    let FONT = { fontFamily: 'Arial', fontSize: 32, color: '#ffffff', align: "center"};
 
     let scores_data;
 
@@ -25,15 +31,45 @@ game.view.scene_scores = (function () {
         },
 
         create: function () {
-            let player_cnt = 0;
+            let y = START_Y;
+
+            let graphics = this.add.graphics().lineStyle(5, 0xffffff);
+            let line_x = NAME_X + NAME_DELTA_X * 0.67;
+            let line_y = START_Y + HEADER_DELTA_Y * 0.5;
+            graphics.lineBetween(line_x, START_Y - 50, line_x, SCENE_HEIGHT - 50);
+            graphics.lineBetween(50, line_y, SCENE_WIDTH - 50, line_y);
+
+            create_text_row(this, y, ["Player", "Start\nScore", "Center\nCards", "Pounce\nLeft", "End\nScore"]);
+
+            y += HEADER_DELTA_Y;
+
             for (var p in scores_data) {
                 if (scores_data.hasOwnProperty(p)) {
-                    player_cnt++;
-                    this.add.text(SCENE_WIDTH / 2, player_cnt * 100, p + ": " + JSON.stringify(scores_data[p]), { fontFamily: CENTER_PILE_FONT, fontSize: CENTER_PILE_TEXT_SIZE, color: '#ffffff' }).setOrigin();
+                    let scores = scores_data[p];
+                    if (p.length > 12) {
+                        p = p.substr(0, 12) + "...";
+                    }
+                    create_text_row(this, y, [
+                        p,
+                        scores.start_score,
+                        scores.num_center,
+                        scores.num_pounce_left,
+                        scores.end_score
+                    ]);
+
+                    y += ROW_DELTA_Y;
                 }
             }
         }
     });
+
+    const create_text_row = function(scene, y, texts) {
+        scene.add.text(NAME_X, y, texts[0], FONT).setOrigin();
+        scene.add.text(NAME_X + NAME_DELTA_X, y, texts[1], FONT).setOrigin();
+        scene.add.text(NAME_X + NAME_DELTA_X + NUMBER_DELTA_X, y, texts[2], FONT).setOrigin();
+        scene.add.text(NAME_X + NAME_DELTA_X + 2 * NUMBER_DELTA_X, y, texts[3], FONT).setOrigin();
+        scene.add.text(NAME_X + NAME_DELTA_X + 3 * NUMBER_DELTA_X, y, texts[4], FONT).setOrigin();
+    };
 
     return {
         init_module: init_module,
