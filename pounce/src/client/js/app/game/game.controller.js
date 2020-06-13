@@ -53,8 +53,11 @@ game.controller = (function () {
     };
 
     const handle_ditch_button_clicked = function() {
-        let new_ditch_val = game.model.flip_ditch();
+        game.model.flip_ditch();
+    };
 
+    const handle_ditch_changed = function(new_ditch_val) {
+        console.log('sending message setting ditch to', new_ditch_val);
         socket.emit('set_ditch', new_ditch_val);
     };
 
@@ -69,6 +72,7 @@ game.controller = (function () {
         handle_center_move_feedback: handle_center_move_feedback,
         update_center: update_center,
         update_scores: update_scores,
-        handle_ditch_button_clicked: handle_ditch_button_clicked
+        handle_ditch_button_clicked: handle_ditch_button_clicked,
+        handle_ditch_changed: handle_ditch_changed
     };
 }());

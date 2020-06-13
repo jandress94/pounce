@@ -132,7 +132,14 @@ game.model = (function () {
             refresh_data.refresh_build_piles.push(move_build_pile_idx);
         }
         refresh_data.refresh_build_piles.push(build_pile_idx);
+        check_reset_ditch();
         return true;
+    };
+
+    const check_reset_ditch = function() {
+        if (ready_for_ditch) {
+            set_ditch(false);
+        }
     };
 
     const check_move_to_center = function(move_metadata, center_pile_coords) {
@@ -191,6 +198,7 @@ game.model = (function () {
                 build_piles[move_build_pile_idx].pop();
                 refresh_data.refresh_build_piles.push(move_build_pile_idx);
             }
+            check_reset_ditch();
         }
         center_click_metadata = null;
     };
@@ -205,10 +213,14 @@ game.model = (function () {
          refresh_data.refresh_center_pile_ids.push(center_pile_coords);
     };
 
-    const flip_ditch = function() {
-        ready_for_ditch = !ready_for_ditch;
+    const set_ditch = function(val) {
+        ready_for_ditch = val;
         refresh_data.refresh_ditch = ready_for_ditch;
-        return ready_for_ditch;
+        game.controller.handle_ditch_changed(ready_for_ditch);
+    };
+
+    const flip_ditch = function() {
+        set_ditch(!ready_for_ditch);
     };
 
     return {
