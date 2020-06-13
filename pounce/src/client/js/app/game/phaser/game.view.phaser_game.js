@@ -50,15 +50,21 @@ game.view.phaser_game = (function () {
         phaser_game.scene.start('scores');
     };
 
-    const display_scores = function(scores_data) {
+    const display_scores = function(scores_data, post_display_callback) {
         game.view.scene_scores.update_scores(scores_data);
 
         if (game.view.scene_pouncer.get_has_displayed_long_enough()) {
             switch_to_scores();
+            post_display_callback();
         } else {
+            let callback = function () {
+                switch_to_scores();
+                post_display_callback();
+            };
+
             phaser_game.scene.getScene('scene_pouncer').time.addEvent({
                 delay: game.view.scene_pouncer.TIME_ON_PAGE_SEC * 1000,
-                callback: switch_to_scores,
+                callback: callback,
                 loop: false,
                 repeat: 0,
                 startAt: 0,

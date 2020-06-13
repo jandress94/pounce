@@ -33,9 +33,8 @@ game.view = (function () {
     };
 
     const display_scores = function(scores_data) {
-        game.view.phaser_game.display_scores(scores_data);
-
         let button_div = document.createElement('div');
+        button_div.style.visibility = 'hidden';
         $container.append(button_div);
 
         let game_finished = false;
@@ -70,6 +69,8 @@ game.view = (function () {
                 game.controller.handle_next_hand_button();
             });
         }
+
+        game.view.phaser_game.display_scores(scores_data, function() {button_div.style.visibility = 'visible'});
     };
 
     return {
