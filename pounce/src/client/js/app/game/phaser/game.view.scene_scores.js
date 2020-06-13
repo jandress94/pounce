@@ -35,7 +35,7 @@ game.view.scene_scores = (function () {
 
             let graphics = this.add.graphics();
 
-            create_text_row(this, y, ["Player", "Start\nScore", "Center\nCards", "Pounce\nLeft", "End\nScore"]);
+            create_text_row(this, y, ["Player", "Start\nScore", "Center\nCards", "Pounce\nLeft", "End\nScore"], false);
 
             y += HEADER_DELTA_Y;
 
@@ -68,7 +68,7 @@ game.view.scene_scores = (function () {
                         scores.num_center,
                         scores.num_pounce_left,
                         scores.end_score
-                    ]);
+                    ], true);
 
                     y += ROW_DELTA_Y;
                 }
@@ -82,12 +82,18 @@ game.view.scene_scores = (function () {
         }
     });
 
-    const create_text_row = function(scene, y, texts) {
+    const create_text_row = function(scene, y, texts, add_operators) {
         scene.add.text(NAME_X, y, texts[0], FONT).setOrigin();
         scene.add.text(NAME_X + NAME_DELTA_X, y, texts[1], FONT).setOrigin();
         scene.add.text(NAME_X + NAME_DELTA_X + NUMBER_DELTA_X, y, texts[2], FONT).setOrigin();
         scene.add.text(NAME_X + NAME_DELTA_X + 2 * NUMBER_DELTA_X, y, texts[3], FONT).setOrigin();
         scene.add.text(NAME_X + NAME_DELTA_X + 3 * NUMBER_DELTA_X, y, texts[4], FONT).setOrigin();
+
+        if (add_operators) {
+            scene.add.text(NAME_X + NAME_DELTA_X + 0.5 * NUMBER_DELTA_X, y, "+", FONT).setOrigin();
+            scene.add.text(NAME_X + NAME_DELTA_X + 1.5 * NUMBER_DELTA_X, y, "-", FONT).setOrigin();
+            scene.add.text(NAME_X + NAME_DELTA_X + 2.5 * NUMBER_DELTA_X, y, "=", FONT).setOrigin();
+        }
     };
 
     return {
