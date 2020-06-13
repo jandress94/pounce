@@ -29,8 +29,8 @@ game.view.phaser_game = (function () {
         phaser_game = new Phaser.Game(config);
     };
 
-    const switch_to_pouncer_scene = function (winner) {
-        game.view.scene_pouncer.set_winner(winner);
+    const switch_to_pouncer_scene = function (message) {
+        game.view.scene_pouncer.set_message(message);
         phaser_game.scene.stop('scene_pounce');
         phaser_game.scene.start('scene_pouncer');
     };

@@ -13,6 +13,8 @@ let STATE_JOINING = 'joining';
 let STATE_PLAYING = 'playing';
 let STATE_SCORES = 'scores';
 
+let NUM_DITCH_BEFORE_END_HAND = 2;
+
 const DEBUG = true;
 
 
@@ -104,6 +106,7 @@ const start_hand = function (room_id) {
     room.state = STATE_PLAYING;
 
     room.num_center_cards = {};
+    room.num_ditches = 0;
     room.ditches = {};
     for (let i = 0; i < room.num_players(); i++) {
         room.num_center_cards[room.sockets[i].player_name] = 0;
@@ -163,21 +166,27 @@ const handle_ditch_update = function(room_id, socket, new_ditch_val) {
         }
 
         if (should_ditch) {
+            room.num_ditches++;
+
             for (let i = 0; i < room.num_players(); i++) {
                 room.ditches[room.sockets[i].player_name] = false;
             }
-            io.to(room_id).emit('ditch');
+            io.to(room_id).emit('ditch', room.num_ditches >= NUM_DITCH_BEFORE_END_HAND);
         }
     }
 };
 
-const handle_pounce = function(room_id, pouncer_socket) {
+const end_hand = function(room_id, message) {
     let room = room_data[room_id];
     room.state = STATE_SCORES;
     room.pounce_cards_left = {};
     room.num_pounce_cards_left_recorded = 0;
 
-    io.to(room_id).emit('hand_done', pouncer_socket.player_name);
+    io.to(room_id).emit('hand_done', message);
+};
+
+const handle_pounce = function(room_id, pouncer_socket) {
+    end_hand(room_id, pouncer_socket.player_name + " Pounced!");
 };
 
 const record_pounce_cards_left = function(socket, num_pounce_cards_left) {
@@ -287,6 +296,10 @@ const handle_set_name = function(socket, name) {
     }
 };
 
+const handle_end_hand = function(room_id){
+    end_hand(room_id, "Hand Ended");
+};
+
 const remove_socket_from_room = function(socket) {
     let room = room_data[socket.room_id];
 
@@ -377,6 +390,11 @@ io.on('connection', function(socket){
     socket.on('leave_room', function() {
         console.log('socket', socket.id, 'is leaving their current room');
         handle_leave_room(socket);
+    });
+
+    socket.on('request_end_hand', function() {
+        console.log('socket', socket.id, 'is ending the hand');
+        handle_end_hand(socket.room_id);
     });
 
     socket.on('disconnect', function(){

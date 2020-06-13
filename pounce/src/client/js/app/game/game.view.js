@@ -1,14 +1,17 @@
 game.view = (function () {
 
     let $container;
+    let end_hand_div;
 
     const init_module = function ($c) {
         $container = $c;
+        end_hand_div = null;
         game.view.phaser_game.init_module();
     };
 
     const clear_container = function() {
         $container.empty();
+        end_hand_div = null;
     };
 
     const create_initial_game = function () {
@@ -17,11 +20,23 @@ game.view = (function () {
         let game_div = document.createElement('div');
         $container.append(game_div);
 
+        end_hand_div = document.createElement('div');
+        end_hand_div.style.visibility = 'hidden';
+        $container.append(end_hand_div);
+
+        let end_hand_button = document.createElement('button');
+        end_hand_div.appendChild(end_hand_button);
+        end_hand_button.appendChild(document.createTextNode('End Hand'));
+        $(end_hand_button).click(function() {
+            game.controller.handle_end_hand_button();
+        });
+
         game.view.phaser_game.create_game(game_div);
     };
 
-    const switch_to_pouncer_scene = function (winner) {
-        game.view.phaser_game.switch_to_pouncer_scene(winner);
+    const switch_to_pouncer_scene = function (message) {
+        end_hand_div.style.visibility = 'hidden';
+        game.view.phaser_game.switch_to_pouncer_scene(message);
     };
 
     const pause_game = function() {
@@ -80,6 +95,10 @@ game.view = (function () {
         game.view.phaser_game.display_scores(scores_data, function() {button_div.style.visibility = 'visible'});
     };
 
+    const add_end_hand_button = function() {
+        end_hand_div.style.visibility = 'visible';
+    };
+
     return {
         init_module: init_module,
         create_initial_game: create_initial_game,
@@ -87,6 +106,7 @@ game.view = (function () {
         pause_game: pause_game,
         resume_game: resume_game,
         switch_to_pouncer_scene: switch_to_pouncer_scene,
-        display_scores: display_scores
+        display_scores: display_scores,
+        add_end_hand_button: add_end_hand_button
     };
 }());

@@ -19,9 +19,9 @@ game.controller = (function () {
         socket.emit('pounce');
     };
 
-    const handle_hand_done = function(winner) {
+    const handle_hand_done = function(message) {
         socket.emit('update_pounce_cards_remaining', game.model.get_num_pounce_cards_left());
-        game.view.switch_to_pouncer_scene(winner);
+        game.view.switch_to_pouncer_scene(message);
     };
 
     const handle_move_to_build_pile = function(click_metadata, build_pile_idx) {
@@ -61,8 +61,12 @@ game.controller = (function () {
         socket.emit('set_ditch', new_ditch_val);
     };
 
-    const handle_ditch = function() {
+    const handle_ditch = function(should_add_end_hand_button) {
         game.model.ditch();
+
+        if (should_add_end_hand_button) {
+            game.view.add_end_hand_button();
+        }
     };
 
     const handle_next_hand_button = function() {
@@ -83,6 +87,10 @@ game.controller = (function () {
         room_creator.start();
     };
 
+    const handle_end_hand_button = function() {
+        socket.emit('request_end_hand');
+    };
+
     return {
         init_module: init_module,
         start_hand: start_hand,
@@ -100,6 +108,7 @@ game.controller = (function () {
         handle_next_hand_button: handle_next_hand_button,
         handle_change_players_button: handle_change_players_button,
         handle_play_again_button: handle_play_again_button,
-        handle_back_to_home_button: handle_back_to_home_button
+        handle_back_to_home_button: handle_back_to_home_button,
+        handle_end_hand_button: handle_end_hand_button
     };
 }());

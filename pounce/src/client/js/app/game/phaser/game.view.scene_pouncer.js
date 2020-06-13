@@ -8,7 +8,7 @@ game.view.scene_pouncer = (function () {
 
     let TIME_ON_PAGE_SEC = 3;
 
-    let winner;
+    let message;
 
     let has_displayed_long_enough;
 
@@ -16,11 +16,11 @@ game.view.scene_pouncer = (function () {
         SCENE_WIDTH = w;
         SCENE_HEIGHT = h;
 
-        winner = null;
+        message = null;
     };
 
-    const set_winner = function(w) {
-        winner = w + ' pounced!';
+    const set_message = function(m) {
+        message = m;
     };
 
     const get_has_displayed_long_enough = function () {
@@ -35,7 +35,7 @@ game.view.scene_pouncer = (function () {
         },
 
         create: function () {
-            this.add.text(SCENE_WIDTH / 2, SCENE_HEIGHT / 2, winner, { fontFamily: CENTER_PILE_FONT, fontSize: CENTER_PILE_TEXT_SIZE, color: '#ffffff' }).setOrigin();
+            this.add.text(SCENE_WIDTH / 2, SCENE_HEIGHT / 2, message, { fontFamily: CENTER_PILE_FONT, fontSize: CENTER_PILE_TEXT_SIZE, color: '#ffffff' }).setOrigin();
             has_displayed_long_enough = false;
 
             var timer = this.time.addEvent({
@@ -57,7 +57,7 @@ game.view.scene_pouncer = (function () {
     return {
         TIME_ON_PAGE_SEC: TIME_ON_PAGE_SEC,
         init_module: init_module,
-        set_winner: set_winner,
+        set_message: set_message,
         get_has_displayed_long_enough: get_has_displayed_long_enough,
         Scene_Pouncer: Scene_Pouncer
     };

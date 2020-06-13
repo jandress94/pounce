@@ -35,8 +35,8 @@ const game = (function () {
             game.controller.update_scores(scores_data);
         });
 
-        socket.on('ditch', function() {
-            game.controller.handle_ditch();
+        socket.on('ditch', function(should_add_end_hand_button) {
+            game.controller.handle_ditch(should_add_end_hand_button);
         });
     };
 
