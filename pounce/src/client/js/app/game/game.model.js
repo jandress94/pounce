@@ -1,6 +1,7 @@
 game.model = (function () {
 
     let NUM_POUNCE_CARDS = 1;
+    let POINTS_TO_WIN = 3;
 
     let pounce_pile;
     let build_piles;
@@ -238,6 +239,7 @@ game.model = (function () {
     };
 
     return {
+        NUM_POINTS_TO_WIN: POINTS_TO_WIN,
         init_module: init_module,
         start_hand_w_deck: start_hand_w_deck,
         get_first_pounce_card: get_first_pounce_card,

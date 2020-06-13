@@ -34,6 +34,42 @@ game.view = (function () {
 
     const display_scores = function(scores_data) {
         game.view.phaser_game.display_scores(scores_data);
+
+        let button_div = document.createElement('div');
+        $container.append(button_div);
+
+        let game_finished = false;
+        for (let p in scores_data) {
+            if (scores_data.hasOwnProperty(p)) {
+                if (scores_data[p].end_score >= game.model.NUM_POINTS_TO_WIN) {
+                    game_finished = true;
+                    break;
+                }
+            }
+        }
+
+        if (game_finished) {
+            let change_players_button = document.createElement('button');
+            button_div.appendChild(change_players_button);
+            change_players_button.appendChild(document.createTextNode('Change Players'));
+            $(change_players_button).click(function() {
+                game.controller.handle_change_players_button();
+            });
+
+            let play_again_button = document.createElement('button');
+            button_div.appendChild(play_again_button);
+            play_again_button.appendChild(document.createTextNode('Play Again'));
+            $(play_again_button).click(function() {
+                console.log('play again');
+            });
+        } else {
+            let next_hand_button = document.createElement('button');
+            button_div.appendChild(next_hand_button);
+            next_hand_button.appendChild(document.createTextNode('Next Hand'));
+            $(next_hand_button).click(function () {
+                game.controller.handle_next_hand_button();
+            });
+        }
     };
 
     return {

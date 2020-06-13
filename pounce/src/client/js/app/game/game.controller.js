@@ -65,6 +65,14 @@ game.controller = (function () {
         game.model.ditch();
     };
 
+    const handle_next_hand_button = function() {
+        socket.emit('next_hand');
+    };
+
+    const handle_change_players_button = function () {
+        socket.emit('change_players');
+    };
+
     return {
         init_module: init_module,
         start_hand: start_hand,
@@ -78,6 +86,8 @@ game.controller = (function () {
         update_scores: update_scores,
         handle_ditch_button_clicked: handle_ditch_button_clicked,
         handle_ditch_changed: handle_ditch_changed,
-        handle_ditch: handle_ditch
+        handle_ditch: handle_ditch,
+        handle_next_hand_button: handle_next_hand_button,
+        handle_change_players_button: handle_change_players_button
     };
 }());
