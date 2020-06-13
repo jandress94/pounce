@@ -3,7 +3,8 @@ game.view.scene_pounce = (function () {
     let SCENE_WIDTH;
     let SCENE_HEIGHT;
 
-    let CARD_SCALE = 0.6;
+    let CARD_WIDTH = 80;
+    let CARD_HEIGHT = 115;
 
     let DECK_DOWN_X = 75;
     let DECK_DOWN_Y = 500;
@@ -15,6 +16,9 @@ game.view.scene_pounce = (function () {
     let BUILD_PILE_DELTA_X = 110;
     let BUILD_PILE_START_Y = 350;
     let BUILD_PILE_DELTA_Y = 35;
+
+    let BUILD_PILE_MAX_BEFORE_SHRINK = 8;
+    let MAX_BUILD_HEIGHT = CARD_HEIGHT + (BUILD_PILE_MAX_BEFORE_SHRINK - 1) * BUILD_PILE_DELTA_Y;
 
     let BUILD_BASE_WIDTH = 75;
     let BUILD_BASE_HEIGHT = 100;
@@ -77,7 +81,7 @@ game.view.scene_pounce = (function () {
 
             // create face down card for the deck
             let deck_down_card = this.add.image(DECK_DOWN_X, DECK_DOWN_Y, 'card_backs', 'cardBack_red5.png');
-            deck_down_card.setScale(CARD_SCALE);
+            deck_down_card.setScale(CARD_WIDTH / deck_down_card.width, CARD_HEIGHT / deck_down_card.height);
             deck_down_card.setInteractive();
 
             // create group to hold face up deck cards
@@ -98,7 +102,7 @@ game.view.scene_pounce = (function () {
                 build_bases_group.add(build_base);
 
                 let build_pile_card = this.add.image(build_pile_x, BUILD_PILE_START_Y, 'cards', card_to_filename(game.model.get_build_piles()[i][0]));
-                build_pile_card.setScale(CARD_SCALE);
+                build_pile_card.setScale(CARD_WIDTH / build_pile_card.width, CARD_HEIGHT / build_pile_card.height);
                 build_pile_card.setInteractive();
                 build_pile_card.setData('build_pile_idx', i);
                 build_pile_card.setData('build_pile_card_idx', 0);
@@ -197,7 +201,7 @@ game.view.scene_pounce = (function () {
                 let deck_up_card_x = DECK_UP_START_X;
                 for (let i = deck_up_cards.length - 1; i >= 0; i--) {
                     let deck_up_card = this.add.image(deck_up_card_x, DECK_DOWN_Y, 'cards', card_to_filename(deck_up_cards[i]));
-                    deck_up_card.setScale(CARD_SCALE);
+                    deck_up_card.setScale(CARD_WIDTH / deck_up_card.width, CARD_HEIGHT / deck_up_card.height);
                     deck_up_card.setInteractive();
                     deck_up_card.setData('is_top_up_card', i === 0);
 
@@ -218,20 +222,33 @@ game.view.scene_pounce = (function () {
                     let build_pile_idx = refresh_data.refresh_build_piles[i];
                     build_pile_groups[build_pile_idx].clear(true, true);
 
+                    let build_pile = game.model.get_build_piles()[build_pile_idx];
+                    let num_cards = build_pile.length;
+
                     let build_pile_x = BUILD_PILE_START_X + build_pile_idx * BUILD_PILE_DELTA_X;
                     let build_pile_y = BUILD_PILE_START_Y;
+                    let card_height = CARD_HEIGHT;
+                    let delta_y = BUILD_PILE_DELTA_Y;
 
-                    let build_pile = game.model.get_build_piles()[build_pile_idx];
-                    for (let j = 0; j < build_pile.length; j++) {
+                    if (num_cards > BUILD_PILE_MAX_BEFORE_SHRINK) {
+                        let height_scale = MAX_BUILD_HEIGHT / (CARD_HEIGHT + (num_cards - 1) * BUILD_PILE_DELTA_Y);
+
+                        build_pile_y -= card_height * (1 - height_scale) / 2;
+                        card_height *= height_scale;
+                        delta_y *= height_scale;
+                    }
+
+                    for (let j = 0; j < num_cards; j++) {
                         let build_pile_card = this.add.image(build_pile_x, build_pile_y, 'cards', card_to_filename(build_pile[j]));
-                        build_pile_card.setScale(CARD_SCALE);
+                        build_pile_card.setScale(CARD_WIDTH / build_pile_card.width, card_height / build_pile_card.height);
+                        console.log(build_pile_card.displayWidth, build_pile_card.displayHeight);
                         build_pile_card.setInteractive();
                         build_pile_card.setData('build_pile_idx', build_pile_idx);
                         build_pile_card.setData('build_pile_card_idx', j);
 
                         build_pile_groups[build_pile_idx].add(build_pile_card);
 
-                        build_pile_y += BUILD_PILE_DELTA_Y;
+                        build_pile_y += delta_y;
                     }
                     refresh_data.refresh_build_piles.pop();
                 }
@@ -276,7 +293,7 @@ game.view.scene_pounce = (function () {
         }
 
         pounce_pile_top = scene.add.image(POUNCE_PILE_X, BUILD_PILE_START_Y, 'cards', card_to_filename(pounce_card));
-        pounce_pile_top.setScale(CARD_SCALE);
+        pounce_pile_top.setScale(CARD_WIDTH / pounce_pile_top.width, CARD_HEIGHT / pounce_pile_top.height);
         pounce_pile_top.setInteractive();
     };
 
