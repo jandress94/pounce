@@ -7,13 +7,13 @@ var io = require('socket.io')(http, {
 });
 var shuffle = require('shuffle-array');
 var cards = require('../shared/js/cards');
+var constants = require('../shared/js/constants');
 
 
 let STATE_JOINING = 'joining';
 let STATE_PLAYING = 'playing';
 let STATE_SCORES = 'scores';
-
-let NUM_DITCH_BEFORE_END_HAND = 2;
+let STATE_FINISHED = 'finished';
 
 const DEBUG = true;
 
@@ -24,10 +24,22 @@ function sleep(ms) {
 
 const create_new_room = function() {
     let room_data = {
-        sockets: [],
-        state: STATE_JOINING
+        players: [],
+        unnamed_players: {},
+        state: STATE_JOINING,
+
+        num_players: function() { return this.players.length; },
+
+        num_connected_players: function() {
+            let cnt = 0;
+            for (let i = 0; i < this.num_players(); i++) {
+                if (this.players[i].is_connected()) {
+                    cnt++;
+                }
+            }
+            return cnt;
+        }
     };
-    room_data.num_players = function() { return room_data.sockets.length; };
 
     return room_data;
 };
@@ -85,8 +97,13 @@ const send_player_name_update = function(room_id, socket = null) {
 
     let all_player_names = [];
     for (let i = 0; i < room.num_players(); i++) {
-        const s = room.sockets[i];
-        all_player_names.push(s.hasOwnProperty('player_name') ? s.player_name : null);
+        all_player_names.push(room.players[i].player_name);
+    }
+
+    for (let socket_id in room.unnamed_players) {
+        if (room.unnamed_players.hasOwnProperty(socket_id)) {
+            all_player_names.push(null);
+        }
     }
 
     if (socket !== null) {
@@ -105,12 +122,11 @@ const start_hand = function (room_id) {
 
     room.state = STATE_PLAYING;
 
-    room.num_center_cards = {};
     room.num_ditches = 0;
-    room.ditches = {};
     for (let i = 0; i < room.num_players(); i++) {
-        room.num_center_cards[room.sockets[i].player_name] = 0;
-        room.ditches[room.sockets[i].player_name] = false;
+        room.players[i].num_center_cards = 0;
+        room.players[i].ditch = false;
+        room.players[i].num_pounce_left = constants.NUM_POUNCE_CARDS;
     }
 
     let decks = [];
@@ -128,7 +144,9 @@ const start_hand = function (room_id) {
     }
 
     for (let i = 0; i < room.num_players(); i++) {
-        room.sockets[i].emit('start_hand', { deck: decks[i], num_players: room.num_players() });
+        if (room.players[i].is_connected()) {
+            room.players[i].socket.emit('start_hand', {deck: decks[i], num_players: room.num_players()});
+        }
     }
 };
 
@@ -136,17 +154,15 @@ const start_game = function(socket) {
     let room_id = socket.room_id;
     let room = room_data[room_id];
 
-    for (let i = 0; i < room.num_players(); i++) {
-        if (!room.sockets[i].hasOwnProperty('player_name')) {
+    for (let socket_id in room.unnamed_players) {
+        if (room.unnamed_players.hasOwnProperty(socket_id)) {
             socket.emit('start_game_rejected', 'Not all players have set their name.');
             return;
         }
     }
 
-    room.scores = {};
-
     for (let i = 0; i < room.num_players(); i++) {
-        room.scores[room.sockets[i].player_name] = 0;
+        room.players[i].score = 0;
     }
 
     start_hand(room_id);
@@ -154,12 +170,13 @@ const start_game = function(socket) {
 
 const handle_ditch_update = function(room_id, socket, new_ditch_val) {
     let room = room_data[room_id];
-    room.ditches[socket.player_name] = new_ditch_val;
+
+    room.players[socket.player_idx].ditch = new_ditch_val;
 
     if (new_ditch_val) {
         let should_ditch = true;
-        for (let player_name in room.ditches) {
-            if (room.ditches.hasOwnProperty(player_name) && !room.ditches[player_name]) {
+        for (let i = 0; i < room.num_players(); i++) {
+            if (room.players[i].is_connected() && !room.players[i].ditch) {
                 should_ditch = false;
                 break;
             }
@@ -169,9 +186,9 @@ const handle_ditch_update = function(room_id, socket, new_ditch_val) {
             room.num_ditches++;
 
             for (let i = 0; i < room.num_players(); i++) {
-                room.ditches[room.sockets[i].player_name] = false;
+                room.players[i].ditch = false;
             }
-            io.to(room_id).emit('ditch', room.num_ditches >= NUM_DITCH_BEFORE_END_HAND);
+            io.to(room_id).emit('ditch', room.num_ditches >= constants.NUM_DITCH_BEFORE_END_HAND);
         }
     }
 };
@@ -179,7 +196,6 @@ const handle_ditch_update = function(room_id, socket, new_ditch_val) {
 const end_hand = function(room_id, message) {
     let room = room_data[room_id];
     room.state = STATE_SCORES;
-    room.pounce_cards_left = {};
     room.num_pounce_cards_left_recorded = 0;
 
     io.to(room_id).emit('hand_done', message);
@@ -191,21 +207,39 @@ const handle_pounce = function(room_id, pouncer_socket) {
 
 const record_pounce_cards_left = function(socket, num_pounce_cards_left) {
     let room = room_data[socket.room_id];
-    room.pounce_cards_left[socket.player_name] = num_pounce_cards_left;
+    room.players[socket.player_idx].num_pounce_left = num_pounce_cards_left;
     room.num_pounce_cards_left_recorded += 1;
 
-    if (room.num_pounce_cards_left_recorded === room.num_players()) {
+    if (room.num_pounce_cards_left_recorded === room.num_connected_players()) {
         let score_update = {};
-        for (let i = 0; i < room.num_players(); i++) {
-            let name = room.sockets[i].player_name;
-            score_update[name] = {
-                start_score: room.scores[name],
-                num_center: room.num_center_cards[name],
-                num_pounce_left: room.pounce_cards_left[name]
-            };
-            score_update[name].end_score = score_update[name].start_score + score_update[name].num_center - score_update[name].num_pounce_left;
+        let game_done = false;
 
-            room.scores[name] = score_update[name].end_score;
+        for (let i = 0; i < room.num_players(); i++) {
+            let player = room.players[i];
+
+            // let name = room.players[i].player_name;
+            score_update[player.player_name] = {
+                start_score: player.score,
+                num_center: player.num_center_cards,
+                num_pounce_left: player.num_pounce_left,
+                end_score: player.score + player.num_center_cards - player.num_pounce_left
+            };
+
+            player.score = score_update[player.player_name].end_score;
+
+            if (player.score >= constants.POINTS_TO_WIN) {
+                game_done = true;
+            }
+        }
+
+        if (game_done) {
+            room.state = STATE_FINISHED;
+
+            for (let i = 0; i < room.num_players(); i++) {
+                if (!room.players[i].is_connected()) {
+                    room.players.splice(i, 1);
+                }
+            }
         }
 
         io.to(socket.room_id).emit('update_scores', score_update);
@@ -229,7 +263,7 @@ const handle_request_for_center = function(room_id, requesting_socket, center_da
             new_val: old_val + 1
         });
 
-        room.num_center_cards[requesting_socket.player_name] += 1;
+        room.players[requesting_socket.player_idx].num_center_cards += 1;
     } else {
         requesting_socket.emit('reject_request_move_to_center');
     }
@@ -238,7 +272,8 @@ const handle_request_for_center = function(room_id, requesting_socket, center_da
 const create_confirm_room_join_data = function (socket) {
     return {
         room_id: socket.room_id,
-        player_name: socket.hasOwnProperty('player_name') ? socket.player_name : null
+        player_name: socket.hasOwnProperty('player_name') ? socket.player_name : null,
+        game_state: room_data[socket.room_id].state
     }
 };
 
@@ -247,23 +282,28 @@ const handle_change_players = function(room_id) {
     room.state = STATE_JOINING;
 
     for (let i = 0; i < room.num_players(); i++) {
-        room.sockets[i].emit('confirm_room_join', create_confirm_room_join_data(room.sockets[i]));
+        if (room.players[i].is_connected()) {
+            room.players[i].socket.emit('confirm_room_join', create_confirm_room_join_data(room.players[i].socket));
+        }
         send_player_name_update(room_id);
     }
 };
 
 const handle_request_room_join = function(socket, room_id) {
     if (room_data.hasOwnProperty(room_id)) {
-        // TODO: if already in room, leave.
         socket.join(room_id);
         socket.room_id = room_id;
-        room_data[room_id].sockets.push(socket);
+
+        room_data[room_id].unnamed_players[socket.id] = socket;
+
         console.log('socket', socket.id, 'joined room', room_id);
 
         socket.emit('confirm_room_join', create_confirm_room_join_data(socket));
 
         if (room_data[room_id].state === STATE_JOINING) {
             send_player_name_update(room_id);
+        } else {
+            send_player_name_update(room_id, socket);
         }
     }
 };
@@ -279,9 +319,17 @@ const handle_create_new_room = function(socket) {
 
 const handle_set_name = function(socket, name) {
     // TODO: race-conditions
-    for (let i = 0; i < room_data[socket.room_id].num_players(); i++) {
-        const s = room_data[socket.room_id].sockets[i];
-        if (s.hasOwnProperty('player_name') && s.player_name === name) {
+    let room = room_data[socket.room_id];
+
+    let already_named = socket.hasOwnProperty('player_idx');
+
+    if (already_named && room.players[socket.player_idx].player_name === name) {
+        return;
+    }
+
+    for (let i = 0; i < room.num_players(); i++) {
+        const player = room.players[i];
+        if (player.player_name === name) {
             console.log('found the requested name', name, 'from socket', socket.id, 'already taken, rejecting');
             socket.emit('reject_name');
             return;
@@ -289,6 +337,22 @@ const handle_set_name = function(socket, name) {
     }
     console.log('accepting the requested name', name, 'for socket', socket.id);
     socket.player_name = name;
+
+    if (already_named) {
+        room.players[socket.player_idx].player_name = name;
+    } else {
+        let player_idx = room.num_players();
+
+        room.players.push({
+            socket: socket,
+            player_name: name,
+            is_connected: function() { return this.socket !== null; }
+        });
+
+        socket.player_idx = player_idx;
+        delete room.unnamed_players[socket.id];
+    }
+
     socket.emit('accept_name', name);
 
     if (room_data[socket.room_id].state === STATE_JOINING) {
@@ -303,12 +367,10 @@ const handle_end_hand = function(room_id){
 const remove_socket_from_room = function(socket) {
     let room = room_data[socket.room_id];
 
-    for (let i = 0; i < room.num_players(); i++) {
-        if (socket.id === room.sockets[i].id) {
-            // remove this socket
-            room.sockets.splice(i, 1);
-            break;
-        }
+    if (room.state === STATE_JOINING || room.state === STATE_FINISHED) {
+        room.players.splice(socket.player_idx, 1);
+    } else {
+        room.players[socket.player_idx].socket = null;
     }
 };
 
@@ -318,7 +380,15 @@ const handle_leave_room = function(socket) {
         let room = room_data[room_id];
 
         socket.leave(room_id);
-        remove_socket_from_room(socket);
+
+        if (room.unnamed_players.hasOwnProperty(socket.id)) {
+            delete room.unnamed_players[socket.id];
+        }
+
+        if (socket.hasOwnProperty('player_idx')) {
+            remove_socket_from_room(socket);
+            delete socket.player_idx;
+        }
 
         delete socket.room_id;
 

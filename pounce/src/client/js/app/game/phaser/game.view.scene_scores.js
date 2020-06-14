@@ -43,7 +43,7 @@ game.view.scene_scores = (function () {
             for (var p in scores_data) {
                 if (scores_data.hasOwnProperty(p)) {
                     let scores = scores_data[p];
-                    if (scores.end_score >= game.model.NUM_POINTS_TO_WIN && (highest_winner === null || scores.end_score > highest_winner)) {
+                    if (scores.end_score >= constants.POINTS_TO_WIN && (highest_winner === null || scores.end_score > highest_winner)) {
                         highest_winner = scores.end_score;
                     }
                 }

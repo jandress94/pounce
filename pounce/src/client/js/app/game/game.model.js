@@ -1,11 +1,4 @@
 game.model = (function () {
-
-    // let NUM_POUNCE_CARDS = 13;
-    // let POINTS_TO_WIN = 100;
-
-    let NUM_POUNCE_CARDS = 1;
-    let POINTS_TO_WIN = 1;
-
     let pounce_pile;
     let build_piles;
     let deck;
@@ -38,7 +31,7 @@ game.model = (function () {
 
     const start_hand_w_deck = function(d, num_players) {
         pounce_pile = [];
-        for (let i = 0; i < NUM_POUNCE_CARDS; i++) {
+        for (let i = 0; i < constants.NUM_POUNCE_CARDS; i++) {
             pounce_pile.push(d.cards.pop());
         }
 
@@ -242,7 +235,6 @@ game.model = (function () {
     };
 
     return {
-        NUM_POINTS_TO_WIN: POINTS_TO_WIN,
         init_module: init_module,
         start_hand_w_deck: start_hand_w_deck,
         get_first_pounce_card: get_first_pounce_card,

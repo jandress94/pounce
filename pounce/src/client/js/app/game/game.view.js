@@ -55,7 +55,7 @@ game.view = (function () {
         let game_finished = false;
         for (let p in scores_data) {
             if (scores_data.hasOwnProperty(p)) {
-                if (scores_data[p].end_score >= game.model.NUM_POINTS_TO_WIN) {
+                if (scores_data[p].end_score >= constants.POINTS_TO_WIN) {
                     game_finished = true;
                     break;
                 }
