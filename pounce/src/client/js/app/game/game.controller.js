@@ -26,7 +26,10 @@ game.controller = (function () {
         } else {
             console.log('not part of this hand');
         }
-        game.view.switch_to_pouncer_scene(message);
+
+        if (app.model.get_name() !== null) {
+            game.view.switch_to_pouncer_scene(message);
+        }
     };
 
     const handle_move_to_build_pile = function(click_metadata, build_pile_idx) {
@@ -54,7 +57,9 @@ game.controller = (function () {
     };
 
     const update_scores = function(scores_data) {
-        game.view.display_scores(scores_data);
+        if (app.model.get_name() !== null) {
+            game.view.display_scores(scores_data);
+        }
     };
 
     const handle_ditch_button_clicked = function() {
