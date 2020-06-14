@@ -20,6 +20,13 @@ game.view.phaser_game = (function () {
             height: SCENE_HEIGHT,
             parent: game_div,
             scene: [
+                new Phaser.Class({
+                    Extends: Phaser.Scene,
+
+                    initialize: function Scene_Pounce () {
+                        Phaser.Scene.call(this, {key: 'scene_blank'});
+                    }
+                }),
                 game.view.scene_pounce.Scene_Pounce,
                 game.view.scene_pouncer.Scene_Pouncer,
                 game.view.scene_scores.Scene_Scores
@@ -27,6 +34,12 @@ game.view.phaser_game = (function () {
         };
 
         phaser_game = new Phaser.Game(config);
+    };
+
+    const start_hand_scene = function() {
+        phaser_game.scene.stop('scene_blank');
+        phaser_game.scene.stop('scores');
+        phaser_game.scene.start('scene_pounce');
     };
 
     const switch_to_pouncer_scene = function (message) {
@@ -77,6 +90,7 @@ game.view.phaser_game = (function () {
     return {
         init_module: init_module,
         create_game: create_game,
+        start_hand_scene: start_hand_scene,
         pause_game: pause_game,
         resume_game: resume_game,
         switch_to_pouncer_scene: switch_to_pouncer_scene,

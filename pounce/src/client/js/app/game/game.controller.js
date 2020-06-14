@@ -8,7 +8,7 @@ game.controller = (function () {
 
     const start_hand = function(deck, num_players, hand_id) {
         game.model.start_hand_w_deck(deck, num_players, hand_id);
-        game.view.create_initial_game();
+        game.view.start_hand_scene();
     };
 
     const handle_click_hand_draw = function () {

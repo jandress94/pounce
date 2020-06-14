@@ -1,35 +1,41 @@
 game.view = (function () {
 
     let $container;
-    let end_hand_div;
 
-    let has_created_game;
+    let end_hand_div;
+    let next_hand_div;
+    let post_game_buttons_div;
+
+    let is_set;
 
     const init_module = function ($c) {
         $container = $c;
         end_hand_div = null;
+        next_hand_div = null;
+        post_game_buttons_div = null;
         game.view.phaser_game.init_module();
-
-        has_created_game = false;
+        is_set = false;
     };
 
     const clear_container = function() {
         $container.empty();
         end_hand_div = null;
+        next_hand_div = null;
+        post_game_buttons_div = null;
     };
 
-    const ensure_has_created_game = function() {
-        if (!has_created_game) {
-            create_initial_game();
-        }
+    const is_setup = function () {
+        return is_set;
     };
 
-    const create_initial_game = function () {
-        has_created_game = true;
+    const set_up = function() {
+        is_set = true;
         clear_container();
 
         let game_div = document.createElement('div');
         $container.append(game_div);
+
+        // end hand
 
         end_hand_div = document.createElement('div');
         end_hand_div.style.visibility = 'hidden';
@@ -42,11 +48,68 @@ game.view = (function () {
             game.controller.handle_end_hand_button();
         });
 
+        // next hand
+
+        next_hand_div = document.createElement('div');
+        next_hand_div.style.visibility = 'hidden';
+        $container.append(next_hand_div);
+
+        let next_hand_button = document.createElement('button');
+        next_hand_div.appendChild(next_hand_button);
+        next_hand_button.appendChild(document.createTextNode('Next Hand'));
+        $(next_hand_button).click(function () {
+            game.controller.handle_next_hand_button();
+        });
+
+        // post game buttons
+
+        post_game_buttons_div = document.createElement('div');
+        post_game_buttons_div.style.visibility = 'hidden';
+        $container.append(post_game_buttons_div);
+
+        let play_again_button = document.createElement('button');
+        post_game_buttons_div.appendChild(play_again_button);
+        play_again_button.appendChild(document.createTextNode('Play Again'));
+        $(play_again_button).click(function() {
+            game.controller.handle_play_again_button();
+        });
+
+        let change_players_button = document.createElement('button');
+        post_game_buttons_div.appendChild(change_players_button);
+        change_players_button.appendChild(document.createTextNode('Change Players'));
+        $(change_players_button).click(function() {
+            game.controller.handle_change_players_button();
+        });
+
+        let back_to_home_button = document.createElement("button");
+        post_game_buttons_div.appendChild(back_to_home_button);
+        back_to_home_button.appendChild(document.createTextNode('Back to Home Page'));
+        $(back_to_home_button).click(function() {
+            game.controller.handle_back_to_home_button();
+        });
+
         game.view.phaser_game.create_game(game_div);
     };
 
+    const ensure_setup = function() {
+        if (!is_set) {
+            set_up();
+        }
+    };
+
+    const start_hand_scene = function() {
+        ensure_setup();
+
+        end_hand_div.style.visibility = 'hidden';
+        next_hand_div.style.visibility = 'hidden';
+        post_game_buttons_div.style.visibility = 'hidden';
+
+        game.view.phaser_game.start_hand_scene();
+    };
+
     const switch_to_pouncer_scene = function (message) {
-        ensure_has_created_game();
+        ensure_setup();
+
         end_hand_div.style.visibility = 'hidden';
         game.view.phaser_game.switch_to_pouncer_scene(message);
     };
@@ -60,10 +123,7 @@ game.view = (function () {
     };
 
     const display_scores = function(scores_data) {
-        ensure_has_created_game();
-        let button_div = document.createElement('div');
-        button_div.style.visibility = 'hidden';
-        $container.append(button_div);
+        ensure_setup();
 
         let game_finished = false;
         for (let p in scores_data) {
@@ -75,37 +135,14 @@ game.view = (function () {
             }
         }
 
+        let button_div_to_show;
         if (game_finished) {
-            let play_again_button = document.createElement('button');
-            button_div.appendChild(play_again_button);
-            play_again_button.appendChild(document.createTextNode('Play Again'));
-            $(play_again_button).click(function() {
-                game.controller.handle_play_again_button();
-            });
-
-            let change_players_button = document.createElement('button');
-            button_div.appendChild(change_players_button);
-            change_players_button.appendChild(document.createTextNode('Change Players'));
-            $(change_players_button).click(function() {
-                game.controller.handle_change_players_button();
-            });
-
-            let back_to_home_button = document.createElement("button");
-            button_div.appendChild(back_to_home_button);
-            back_to_home_button.appendChild(document.createTextNode('Back to Home Page'));
-            $(back_to_home_button).click(function() {
-                game.controller.handle_back_to_home_button();
-            });
+            button_div_to_show = post_game_buttons_div;
         } else {
-            let next_hand_button = document.createElement('button');
-            button_div.appendChild(next_hand_button);
-            next_hand_button.appendChild(document.createTextNode('Next Hand'));
-            $(next_hand_button).click(function () {
-                game.controller.handle_next_hand_button();
-            });
+            button_div_to_show = next_hand_div;
         }
 
-        game.view.phaser_game.display_scores(scores_data, function() {button_div.style.visibility = 'visible'});
+        game.view.phaser_game.display_scores(scores_data, function() {button_div_to_show.style.visibility = 'visible'});
     };
 
     const add_end_hand_button = function() {
@@ -114,8 +151,7 @@ game.view = (function () {
 
     return {
         init_module: init_module,
-        create_initial_game: create_initial_game,
-        clear_container: clear_container,
+        start_hand_scene: start_hand_scene,
         pause_game: pause_game,
         resume_game: resume_game,
         switch_to_pouncer_scene: switch_to_pouncer_scene,
