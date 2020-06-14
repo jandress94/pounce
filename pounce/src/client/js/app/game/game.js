@@ -7,12 +7,12 @@ const game = (function () {
 
         socket.on('start_hand', function(data) {
             console.log('starting new hand with deck', data.deck);
-            game.controller.start_hand(data.deck, data.num_players);
+            game.controller.start_hand(data.deck, data.num_players, data.hand_id);
         });
 
-        socket.on('hand_done', function(message) {
-            console.log(message);
-            game.controller.handle_hand_done(message);
+        socket.on('hand_done', function(data) {
+            console.log(data);
+            game.controller.handle_hand_done(data.message, data.hand_id);
         });
 
         socket.on('accept_request_move_to_center', function() {
@@ -35,8 +35,8 @@ const game = (function () {
             game.controller.update_scores(scores_data);
         });
 
-        socket.on('ditch', function(should_add_end_hand_button) {
-            game.controller.handle_ditch(should_add_end_hand_button);
+        socket.on('ditch', function(data) {
+            game.controller.handle_ditch(data.show_end_hand_button, data.hand_id);
         });
     };
 

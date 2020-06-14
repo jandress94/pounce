@@ -30,10 +30,10 @@ const create_new_room = function() {
 
         num_players: function() { return this.players.length; },
 
-        num_connected_players: function() {
+        num_active_players: function() {
             let cnt = 0;
             for (let i = 0; i < this.num_players(); i++) {
-                if (this.players[i].is_connected()) {
+                if (this.players[i].is_active()) {
                     cnt++;
                 }
             }
@@ -92,6 +92,10 @@ const get_new_room_id = function(id_len = 5) {
     return Math.random().toString(36).substring(2, 2 + id_len);
 };
 
+const get_hand_id = function() {
+    return Math.random().toString(36);
+};
+
 const send_player_name_update = function(room_id, socket = null) {
     let room = room_data[room_id];
 
@@ -121,12 +125,14 @@ const start_hand = function (room_id) {
     }
 
     room.state = STATE_PLAYING;
+    room.hand_id = get_hand_id();
 
     room.num_ditches = 0;
     for (let i = 0; i < room.num_players(); i++) {
         room.players[i].num_center_cards = 0;
         room.players[i].ditch = false;
         room.players[i].num_pounce_left = constants.NUM_POUNCE_CARDS;
+        room.players[i].out_this_round = false;
     }
 
     let decks = [];
@@ -145,7 +151,7 @@ const start_hand = function (room_id) {
 
     for (let i = 0; i < room.num_players(); i++) {
         if (room.players[i].is_connected()) {
-            room.players[i].socket.emit('start_hand', {deck: decks[i], num_players: room.num_players()});
+            room.players[i].socket.emit('start_hand', {deck: decks[i], num_players: room.num_players(), hand_id: room.hand_id});
         }
     }
 };
@@ -153,6 +159,13 @@ const start_hand = function (room_id) {
 const start_game = function(socket) {
     let room_id = socket.room_id;
     let room = room_data[room_id];
+
+    if (room.state !== STATE_JOINING && room.state !== STATE_FINISHED) {
+        socket.emit('start_game_rejected', "This game is already in progress. " +
+            "You will need to wait until the current hand is finished " +
+            "and will join as part of the next hand.");
+        return;
+    }
 
     for (let socket_id in room.unnamed_players) {
         if (room.unnamed_players.hasOwnProperty(socket_id)) {
@@ -176,7 +189,7 @@ const handle_ditch_update = function(room_id, socket, new_ditch_val) {
     if (new_ditch_val) {
         let should_ditch = true;
         for (let i = 0; i < room.num_players(); i++) {
-            if (room.players[i].is_connected() && !room.players[i].ditch) {
+            if (room.players[i].is_active() && !room.players[i].ditch) {
                 should_ditch = false;
                 break;
             }
@@ -188,7 +201,10 @@ const handle_ditch_update = function(room_id, socket, new_ditch_val) {
             for (let i = 0; i < room.num_players(); i++) {
                 room.players[i].ditch = false;
             }
-            io.to(room_id).emit('ditch', room.num_ditches >= constants.NUM_DITCH_BEFORE_END_HAND);
+            io.to(room_id).emit('ditch', {
+                show_end_hand_button: room.num_ditches >= constants.NUM_DITCH_BEFORE_END_HAND,
+                hand_id: room.hand_id
+            });
         }
     }
 };
@@ -198,11 +214,21 @@ const end_hand = function(room_id, message) {
     room.state = STATE_SCORES;
     room.num_pounce_cards_left_recorded = 0;
 
-    io.to(room_id).emit('hand_done', message);
+    io.to(room_id).emit('hand_done', {
+        message: message,
+        hand_id: room.hand_id
+    });
 };
 
 const handle_pounce = function(room_id, pouncer_socket) {
     end_hand(room_id, pouncer_socket.player_name + " Pounced!");
+};
+
+const refresh_socket_idxs = function(room_id) {
+    let room = room_data[room_id];
+    for (let i = 0; i < room.num_players(); i++) {
+        room.players[i].socket.player_idx = i;
+    }
 };
 
 const record_pounce_cards_left = function(socket, num_pounce_cards_left) {
@@ -210,12 +236,19 @@ const record_pounce_cards_left = function(socket, num_pounce_cards_left) {
     room.players[socket.player_idx].num_pounce_left = num_pounce_cards_left;
     room.num_pounce_cards_left_recorded += 1;
 
-    if (room.num_pounce_cards_left_recorded === room.num_connected_players()) {
+    if (room.num_pounce_cards_left_recorded === room.num_active_players()) {
         let score_update = {};
         let game_done = false;
 
         for (let i = 0; i < room.num_players(); i++) {
             let player = room.players[i];
+
+            if (!player.hasOwnProperty('score')) {
+                // just joined, set everything to zero.
+                player.score = 0;
+                player.num_center_cards = 0;
+                player.num_pounce_left = 0;
+            }
 
             // let name = room.players[i].player_name;
             score_update[player.player_name] = {
@@ -235,10 +268,16 @@ const record_pounce_cards_left = function(socket, num_pounce_cards_left) {
         if (game_done) {
             room.state = STATE_FINISHED;
 
+            let is_player_removed = false;
             for (let i = 0; i < room.num_players(); i++) {
                 if (!room.players[i].is_connected()) {
                     room.players.splice(i, 1);
+                    is_player_removed = true;
                 }
+            }
+
+            if (is_player_removed) {
+                refresh_socket_idxs(socket.room_id);
             }
         }
 
@@ -260,7 +299,8 @@ const handle_request_for_center = function(room_id, requesting_socket, center_da
 
         io.to(room_id).emit('update_center', {
             center_pile_coords: center_data.center_pile_coords,
-            new_val: old_val + 1
+            new_val: old_val + 1,
+            hand_id: room.hand_id
         });
 
         room.players[requesting_socket.player_idx].num_center_cards += 1;
@@ -330,9 +370,17 @@ const handle_set_name = function(socket, name) {
     for (let i = 0; i < room.num_players(); i++) {
         const player = room.players[i];
         if (player.player_name === name) {
-            console.log('found the requested name', name, 'from socket', socket.id, 'already taken, rejecting');
-            socket.emit('reject_name');
-            return;
+            if (player.is_connected()) {
+                console.log('found the requested name', name, 'from socket', socket.id, 'already taken, rejecting');
+                socket.emit('reject_name');
+                return;
+            } else {
+                // reclaim the name
+                socket.player_idx = i;
+                player.out_this_round = true;
+                player.socket = socket;
+                break;
+            }
         }
     }
     console.log('accepting the requested name', name, 'for socket', socket.id);
@@ -341,22 +389,34 @@ const handle_set_name = function(socket, name) {
     if (already_named) {
         room.players[socket.player_idx].player_name = name;
     } else {
-        let player_idx = room.num_players();
+        if (!socket.hasOwnProperty('player_idx')) {
+            let player_idx = room.num_players();
 
-        room.players.push({
-            socket: socket,
-            player_name: name,
-            is_connected: function() { return this.socket !== null; }
-        });
+            room.players.push({
+                socket: socket,
+                player_name: name,
+                out_this_round: false,
+                is_connected: function () {
+                    return this.socket !== null;
+                },
+                is_active: function () {
+                    return this.is_connected() && !this.out_this_round;
+                }
+            });
 
-        socket.player_idx = player_idx;
+            socket.player_idx = player_idx;
+        }
+
         delete room.unnamed_players[socket.id];
     }
 
     socket.emit('accept_name', name);
 
-    if (room_data[socket.room_id].state === STATE_JOINING) {
+    if (room.state === STATE_JOINING) {
         send_player_name_update(socket.room_id);
+    } else {
+        room.players[socket.player_idx].out_this_round = true;
+        send_player_name_update(socket.room_id, socket);
     }
 };
 
@@ -369,6 +429,7 @@ const remove_socket_from_room = function(socket) {
 
     if (room.state === STATE_JOINING || room.state === STATE_FINISHED) {
         room.players.splice(socket.player_idx, 1);
+        refresh_socket_idxs(socket.room_id);
     } else {
         room.players[socket.player_idx].socket = null;
     }

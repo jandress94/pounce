@@ -6,8 +6,8 @@ game.controller = (function () {
         socket = s;
     };
 
-    const start_hand = function(deck, num_players) {
-        game.model.start_hand_w_deck(deck, num_players);
+    const start_hand = function(deck, num_players, hand_id) {
+        game.model.start_hand_w_deck(deck, num_players, hand_id);
         game.view.create_initial_game();
     };
 
@@ -19,8 +19,13 @@ game.controller = (function () {
         socket.emit('pounce');
     };
 
-    const handle_hand_done = function(message) {
-        socket.emit('update_pounce_cards_remaining', game.model.get_num_pounce_cards_left());
+    const handle_hand_done = function(message, hand_id) {
+        if (game.model.get_hand_id() === hand_id) {
+            console.log('sending num pounce cards left');
+            socket.emit('update_pounce_cards_remaining', game.model.get_num_pounce_cards_left());
+        } else {
+            console.log('not part of this hand');
+        }
         game.view.switch_to_pouncer_scene(message);
     };
 
@@ -61,11 +66,13 @@ game.controller = (function () {
         socket.emit('set_ditch', new_ditch_val);
     };
 
-    const handle_ditch = function(should_add_end_hand_button) {
-        game.model.ditch();
+    const handle_ditch = function(should_add_end_hand_button, hand_id) {
+        if (game.model.get_hand_id() === hand_id) {
+            game.model.ditch();
 
-        if (should_add_end_hand_button) {
-            game.view.add_end_hand_button();
+            if (should_add_end_hand_button) {
+                game.view.add_end_hand_button();
+            }
         }
     };
 

@@ -3,10 +3,14 @@ game.view = (function () {
     let $container;
     let end_hand_div;
 
+    let has_created_game;
+
     const init_module = function ($c) {
         $container = $c;
         end_hand_div = null;
         game.view.phaser_game.init_module();
+
+        has_created_game = false;
     };
 
     const clear_container = function() {
@@ -14,7 +18,14 @@ game.view = (function () {
         end_hand_div = null;
     };
 
+    const ensure_has_created_game = function() {
+        if (!has_created_game) {
+            create_initial_game();
+        }
+    };
+
     const create_initial_game = function () {
+        has_created_game = true;
         clear_container();
 
         let game_div = document.createElement('div');
@@ -35,6 +46,7 @@ game.view = (function () {
     };
 
     const switch_to_pouncer_scene = function (message) {
+        ensure_has_created_game();
         end_hand_div.style.visibility = 'hidden';
         game.view.phaser_game.switch_to_pouncer_scene(message);
     };
@@ -48,6 +60,7 @@ game.view = (function () {
     };
 
     const display_scores = function(scores_data) {
+        ensure_has_created_game();
         let button_div = document.createElement('div');
         button_div.style.visibility = 'hidden';
         $container.append(button_div);

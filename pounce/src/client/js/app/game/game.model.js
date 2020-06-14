@@ -4,6 +4,7 @@ game.model = (function () {
     let deck;
     let center_piles;
     let ready_for_ditch = false;
+    let hand_id;
 
     let center_click_metadata;
 
@@ -14,6 +15,7 @@ game.model = (function () {
         build_piles = null;
         deck = null;
         center_piles = null;
+        hand_id = null;
 
         center_click_metadata = null;
         reset_refresh_data();
@@ -29,7 +31,7 @@ game.model = (function () {
         };
     };
 
-    const start_hand_w_deck = function(d, num_players) {
+    const start_hand_w_deck = function(d, num_players, h) {
         pounce_pile = [];
         for (let i = 0; i < constants.NUM_POUNCE_CARDS; i++) {
             pounce_pile.push(d.cards.pop());
@@ -52,6 +54,7 @@ game.model = (function () {
         center_click_metadata = null;
         reset_refresh_data();
         ready_for_ditch = false;
+        hand_id = h;
     };
 
     const get_first_pounce_card = function() {
@@ -201,13 +204,18 @@ game.model = (function () {
     };
 
     const process_update_center = function (new_center_data) {
-         let center_pile_coords = new_center_data.center_pile_coords;
-         let suit_idx = center_pile_coords[0];
-         let player_idx = center_pile_coords[1];
-         let new_val = new_center_data.new_val;
+        if (hand_id !== new_center_data.hand_id) {
+            console.log(hand_id, new_center_data.hand_id)
+            return;
+        }
 
-         center_piles[suit_idx][player_idx] = Math.max(center_piles[suit_idx][player_idx], new_val);
-         refresh_data.refresh_center_pile_ids.push(center_pile_coords);
+        let center_pile_coords = new_center_data.center_pile_coords;
+        let suit_idx = center_pile_coords[0];
+        let player_idx = center_pile_coords[1];
+        let new_val = new_center_data.new_val;
+
+        center_piles[suit_idx][player_idx] = Math.max(center_piles[suit_idx][player_idx], new_val);
+        refresh_data.refresh_center_pile_ids.push(center_pile_coords);
     };
 
     const set_ditch = function(val, should_handle_change=true) {
@@ -234,6 +242,10 @@ game.model = (function () {
         refresh_data.refresh_deck_up = true;
     };
 
+    const get_hand_id = function() {
+        return hand_id;
+    };
+
     return {
         init_module: init_module,
         start_hand_w_deck: start_hand_w_deck,
@@ -251,6 +263,7 @@ game.model = (function () {
         process_center_click_metadata: process_center_click_metadata,
         process_update_center: process_update_center,
         flip_ditch: flip_ditch,
-        ditch: ditch
+        ditch: ditch,
+        get_hand_id: get_hand_id
     };
 }());
