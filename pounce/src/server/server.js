@@ -96,6 +96,40 @@ const get_hand_id = function() {
     return Math.random().toString(36);
 };
 
+const check_socket_consistency = function(socket, data) {
+    if (!socket.hasOwnProperty('room_id') && data.hasOwnProperty('room_id')) {
+        console.log('found socket inconsistency, trying to fix', data);
+        // reset the socket's room_id
+        socket.room_id = data.room_id;
+
+        let room = room_data[data.room_id];
+
+        if (!socket.hasOwnProperty('player_name')) {
+            if (data.hasOwnProperty('player_name')) {
+                // the name was at one point set. Find the player with that name
+                let found_player = false;
+
+                for (let i = 0; i < room.num_players(); i++) {
+                    if (room.players[i].player_name === data.player_name) {
+                        socket.player_idx = i;
+                        room.players[i].socket = socket;
+                        found_player = true;
+                        break;
+                    }
+                }
+                if (!found_player) {
+                    let player_idx = room.num_players();
+                    room.players.push(create_new_player(socket, data.player_name));
+                    socket.player_idx = player_idx;
+                }
+            } else {
+                // the name was never set
+                room.unnamed_players[socket.id] = socket;
+            }
+        }
+    }
+};
+
 const send_player_name_update = function(room_id, socket = null) {
     let room = room_data[room_id];
 
@@ -357,6 +391,20 @@ const handle_create_new_room = function(socket) {
     socket.emit('new_room_created', room_id);
 };
 
+const create_new_player = function(socket, name) {
+    return {
+        socket: socket,
+        player_name: name,
+        out_this_round: false,
+        is_connected: function () {
+            return this.socket !== null;
+        },
+        is_active: function () {
+            return this.is_connected() && !this.out_this_round;
+        }
+    };
+};
+
 const handle_set_name = function(socket, name) {
     // TODO: race-conditions
     let room = room_data[socket.room_id];
@@ -392,18 +440,7 @@ const handle_set_name = function(socket, name) {
         if (!socket.hasOwnProperty('player_idx')) {
             let player_idx = room.num_players();
 
-            room.players.push({
-                socket: socket,
-                player_name: name,
-                out_this_round: false,
-                is_connected: function () {
-                    return this.socket !== null;
-                },
-                is_active: function () {
-                    return this.is_connected() && !this.out_this_round;
-                }
-            });
-
+            room.players.push(create_new_player(socket, name));
             socket.player_idx = player_idx;
         }
 
@@ -478,53 +515,73 @@ io.on('connection', function(socket){
     });
 
     // Listen for setting name
-    socket.on('set_name', function (name) {
-        console.log('socket', socket.id, 'is requesting name', name);
-        handle_set_name(socket, name);
+    socket.on('set_name', function (data) {
+        console.log('socket', socket.id, 'is requesting name', data);
+
+        check_socket_consistency(socket, data);
+        handle_set_name(socket, data.new_name_request);
     });
 
-    socket.on('start_game', function () {
+    socket.on('start_game', function (data) {
         console.log('socket', socket.id, 'is requesting to start the game in room', socket.room_id);
+
+        check_socket_consistency(socket, data);
         start_game(socket);
     });
 
-    socket.on('next_hand', function () {
+    socket.on('next_hand', function (data) {
         console.log('socket', socket.id, 'is requesting to start the next hand in room', socket.room_id);
+
+        check_socket_consistency(socket, data);
         start_hand(socket.room_id);
     });
 
-    socket.on('pounce', function() {
+    socket.on('pounce', function(data) {
         console.log('socket', socket.id, 'has pounced in room', socket.room_id);
+
+        check_socket_consistency(socket, data);
         handle_pounce(socket.room_id, socket);
     });
 
     socket.on('request_move_to_center', function(data) {
         console.log('socket', socket.id, 'is trying to move to the center with data', data);
+
+        check_socket_consistency(socket, data);
         handle_request_for_center(socket.room_id, socket, data);
     });
 
-    socket.on('update_pounce_cards_remaining', function(num_pounce_cards_left) {
-        console.log('socket', socket.id, 'had', num_pounce_cards_left, 'pounce cards left');
-        record_pounce_cards_left(socket, num_pounce_cards_left);
+    socket.on('update_pounce_cards_remaining', function(data) {
+        console.log('socket', socket.id, 'had', data.num_pounce_left, 'pounce cards left');
+
+        check_socket_consistency(socket, data);
+        record_pounce_cards_left(socket, data.num_pounce_left);
     });
 
-    socket.on('set_ditch', function(new_ditch_val) {
-        console.log('socket', socket.id, 'is setting their ditch value to', new_ditch_val);
-        handle_ditch_update(socket.room_id, socket, new_ditch_val);
+    socket.on('set_ditch', function(data) {
+        console.log('socket', socket.id, 'is setting their ditch value to', data.new_ditch_val);
+
+        check_socket_consistency(socket, data);
+        handle_ditch_update(socket.room_id, socket, data.new_ditch_val);
     });
 
-    socket.on('change_players', function() {
+    socket.on('change_players', function(data) {
         console.log('socket', socket.id, 'is changing the players in their room');
+
+        check_socket_consistency(socket, data);
         handle_change_players(socket.room_id);
     });
 
-    socket.on('leave_room', function() {
+    socket.on('leave_room', function(data) {
         console.log('socket', socket.id, 'is leaving their current room');
+
+        check_socket_consistency(socket, data);
         handle_leave_room(socket);
     });
 
-    socket.on('request_end_hand', function() {
+    socket.on('request_end_hand', function(data) {
         console.log('socket', socket.id, 'is ending the hand');
+
+        check_socket_consistency(socket, data);
         handle_end_hand(socket.room_id);
     });
 

@@ -18,7 +18,10 @@ join_room.controller = (function () {
 
     const handle_set_name = function (name) {
         console.log('requesting name', name);
-        socket.emit('set_name', name);
+
+        let data = app.model.get_id_info();
+        data.new_name_request = name;
+        socket.emit('set_name', data);
     };
 
     const handle_update_players = function () {
@@ -26,7 +29,7 @@ join_room.controller = (function () {
     };
 
     const handle_start_game = function () {
-        socket.emit('start_game');
+        socket.emit('start_game', app.model.get_id_info());
     };
 
     return {

@@ -16,13 +16,16 @@ game.controller = (function () {
     };
 
     const register_pounce = function () {
-        socket.emit('pounce');
+        socket.emit('pounce', app.model.get_id_info());
     };
 
     const handle_hand_done = function(message, hand_id) {
         if (game.model.get_hand_id() === hand_id) {
             console.log('sending num pounce cards left');
-            socket.emit('update_pounce_cards_remaining', game.model.get_num_pounce_cards_left());
+
+            let data = app.model.get_id_info();
+            data.num_pounce_left = game.model.get_num_pounce_cards_left();
+            socket.emit('update_pounce_cards_remaining', data);
         } else {
             console.log('not part of this hand');
         }
@@ -40,10 +43,11 @@ game.controller = (function () {
         if (game.model.check_move_to_center(click_metadata, center_pile_coords)) {
             game.model.set_center_click_metadata(click_metadata);
             game.view.pause_game();
-            socket.emit('request_move_to_center', {
-                center_pile_coords: center_pile_coords,
-                center_card_old_val: game.model.get_center_piles()[center_pile_coords[0]][center_pile_coords[1]]
-            });
+
+            let data = app.model.get_id_info();
+            data.center_pile_coords = center_pile_coords;
+            data.center_card_old_val = game.model.get_center_piles()[center_pile_coords[0]][center_pile_coords[1]];
+            socket.emit('request_move_to_center', data);
         }
     };
 
@@ -68,7 +72,10 @@ game.controller = (function () {
 
     const handle_ditch_changed = function(new_ditch_val) {
         console.log('sending message setting ditch to', new_ditch_val);
-        socket.emit('set_ditch', new_ditch_val);
+
+        let data = app.model.get_id_info();
+        data.new_ditch_val = new_ditch_val;
+        socket.emit('set_ditch', data);
     };
 
     const handle_ditch = function(should_add_end_hand_button, hand_id) {
@@ -82,25 +89,25 @@ game.controller = (function () {
     };
 
     const handle_next_hand_button = function() {
-        socket.emit('next_hand');
+        socket.emit('next_hand', app.model.get_id_info());
     };
 
     const handle_change_players_button = function () {
-        socket.emit('change_players');
+        socket.emit('change_players', app.model.get_id_info());
     };
 
     const handle_play_again_button = function() {
-        socket.emit('start_game');
+        socket.emit('start_game', app.model.get_id_info());
     };
 
     const handle_back_to_home_button = function() {
-        socket.emit('leave_room');
+        socket.emit('leave_room', app.model.get_id_info());
         window.history.pushState(null, null, "/");
         room_creator.start();
     };
 
     const handle_end_hand_button = function() {
-        socket.emit('request_end_hand');
+        socket.emit('request_end_hand', app.model.get_id_info());
     };
 
     return {

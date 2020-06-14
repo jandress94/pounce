@@ -38,6 +38,13 @@ app.model = (function () {
         players = [];
     };
 
+    const get_id_info = function() {
+        return {
+            room_id: room_id,
+            player_name: name
+        };
+    };
+
     return {
         init_module: init_module,
         set_room_id: set_room_id,
@@ -46,6 +53,7 @@ app.model = (function () {
         get_name: get_name,
         set_players: set_players,
         get_players: get_players,
-        clear: clear
+        clear: clear,
+        get_id_info: get_id_info
     };
 }());
