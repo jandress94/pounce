@@ -25,7 +25,13 @@ game.view = (function () {
     };
 
     const is_setup = function () {
-        return is_set;
+        return is_set && document.getElementById('phaser_game_div') !== null;
+    };
+
+    const ensure_setup = function() {
+        if (!is_setup()) {
+            set_up();
+        }
     };
 
     const set_up = function() {
@@ -33,6 +39,7 @@ game.view = (function () {
         clear_container();
 
         let game_div = document.createElement('div');
+        game_div.id = 'phaser_game_div';
         $container.append(game_div);
 
         // end hand
@@ -89,12 +96,6 @@ game.view = (function () {
         });
 
         game.view.phaser_game.create_game(game_div);
-    };
-
-    const ensure_setup = function() {
-        if (!is_set) {
-            set_up();
-        }
     };
 
     const start_hand_scene = function() {
