@@ -114,7 +114,7 @@ game.view.scene_pounce = (function () {
             // create pounce pile
             create_pounce_card(this);
 
-            // create build piles
+            // create center piles
             center_texts = [];
             let center_piles = game.model.get_center_piles();
             for (let s = 0; s < center_piles.length; s++) {

@@ -205,7 +205,7 @@ game.model = (function () {
 
     const process_update_center = function (new_center_data) {
         if (hand_id !== new_center_data.hand_id) {
-            console.log(hand_id, new_center_data.hand_id)
+            console.log(hand_id, new_center_data.hand_id);
             return;
         }
 
@@ -246,6 +246,27 @@ game.model = (function () {
         return hand_id;
     };
 
+    const refresh_center = function (new_center_piles) {
+        if (center_piles === null || center_piles[0].length !== new_center_piles[0].length) {
+            center_piles = new_center_piles;
+
+            for (let i = 0; i < center_piles.length; i++) {
+                for (let j = 0; j < center_piles[i].length; j++) {
+                    refresh_data.refresh_center_pile_ids.push([i, j]);
+                }
+            }
+        } else {
+            for (let i = 0; i < center_piles.length; i++) {
+                for (let j = 0; j < center_piles[i].length; j++) {
+                    if (center_piles[i][j] !== new_center_piles[i][j]) {
+                        center_piles[i][j] = new_center_piles[i][j];
+                        refresh_data.refresh_center_pile_ids.push([i, j]);
+                    }
+                }
+            }
+        }
+    };
+
     return {
         init_module: init_module,
         start_hand_w_deck: start_hand_w_deck,
@@ -264,6 +285,7 @@ game.model = (function () {
         process_update_center: process_update_center,
         flip_ditch: flip_ditch,
         ditch: ditch,
-        get_hand_id: get_hand_id
+        get_hand_id: get_hand_id,
+        refresh_center: refresh_center
     };
 }());

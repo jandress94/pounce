@@ -38,6 +38,11 @@ const game = (function () {
         socket.on('ditch', function(data) {
             game.controller.handle_ditch(data.show_end_hand_button, data.hand_id);
         });
+
+        socket.on('refresh_all_center_piles', function(center_piles) {
+            console.log('refreshing all center piles');
+            game.controller.handle_refresh_center(center_piles);
+        });
     };
 
     return {

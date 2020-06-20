@@ -110,6 +110,10 @@ game.controller = (function () {
         socket.emit('request_end_hand', app.model.get_id_info());
     };
 
+    const handle_refresh_center = function(center_piles) {
+        game.model.refresh_center(center_piles);
+    };
+
     return {
         init_module: init_module,
         start_hand: start_hand,
@@ -128,6 +132,7 @@ game.controller = (function () {
         handle_change_players_button: handle_change_players_button,
         handle_play_again_button: handle_play_again_button,
         handle_back_to_home_button: handle_back_to_home_button,
-        handle_end_hand_button: handle_end_hand_button
+        handle_end_hand_button: handle_end_hand_button,
+        handle_refresh_center: handle_refresh_center
     };
 }());

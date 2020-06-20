@@ -101,6 +101,7 @@ const check_socket_consistency = function(socket, data) {
         console.log('found socket inconsistency, trying to fix', data);
         // reset the socket's room_id
         socket.room_id = data.room_id;
+        socket.join(data.room_id);
 
         let room = room_data[data.room_id];
 
@@ -126,6 +127,10 @@ const check_socket_consistency = function(socket, data) {
                 // the name was never set
                 room.unnamed_players[socket.id] = socket;
             }
+        }
+
+        if (room.state === STATE_PLAYING) {
+            socket.emit('refresh_all_center_piles', room.center_piles);
         }
     }
 };
@@ -473,6 +478,7 @@ const remove_socket_from_room = function(socket) {
 };
 
 const handle_leave_room = function(socket) {
+    console.log('socket', socket.id, 'is disconnecting');
     if (socket.hasOwnProperty('room_id')) {
         let room_id = socket.room_id;
         let room = room_data[room_id];
