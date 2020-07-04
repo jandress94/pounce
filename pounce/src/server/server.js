@@ -75,11 +75,7 @@ app.get("/", function (request, response) {
 app.get("/room/:room_id", function(request, response) {
     const room_id = request.params.room_id;
     console.log('User trying to enter room', room_id);
-    if (room_data.hasOwnProperty(room_id)) {
-        response.sendFile(path.resolve(__dirname + '/../client/html/index.html'));
-    } else {
-        response.sendFile(path.resolve(__dirname + '/../client/html/bad_room.html'));
-    }
+    response.sendFile(path.resolve(__dirname + '/../client/html/index.html'));
 });
 
 // Listen on port 5000
@@ -384,6 +380,8 @@ const handle_request_room_join = function(socket, room_id) {
         } else {
             send_player_name_update(room_id, socket);
         }
+    } else {
+        socket.emit('bad_room_id', room_id);
     }
 };
 

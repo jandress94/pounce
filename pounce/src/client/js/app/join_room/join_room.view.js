@@ -122,10 +122,31 @@ join_room.view = (function () {
         }
     };
 
+    const display_bad_room_page = function (room_id) {
+        clear_container();
+
+        let title_h2 = document.createElement('h2');
+        $container.append(title_h2);
+        title_h2.appendChild(document.createTextNode('Bad Room ID: ' + room_id));
+
+        let info_p = document.createElement('p');
+        $container.append(info_p);
+        info_p.appendChild(document.createTextNode('You tried to enter a Pounce room that does not exist. Click below to return to home page.'));
+
+        let back_button = document.createElement('button');
+        $container.append(back_button);
+        back_button.appendChild(document.createTextNode('Back'));
+
+        $(back_button).click(function () {
+            join_room.controller.handle_back_to_home_button();
+        });
+    };
+
     return {
         init_module: init_module,
         display_joining_room_page: display_joining_room_page,
         display_join_room_page: display_join_room_page,
-        update_player_list: update_player_list
+        update_player_list: update_player_list,
+        display_bad_room_page: display_bad_room_page
     };
 }());

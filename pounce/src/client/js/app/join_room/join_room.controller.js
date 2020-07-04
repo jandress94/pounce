@@ -32,12 +32,23 @@ join_room.controller = (function () {
         socket.emit('start_game', app.model.get_id_info());
     };
 
+    const display_bad_room_page = function(room_id) {
+        join_room.view.display_bad_room_page(room_id);
+    };
+
+    const handle_back_to_home_button = function () {
+        window.history.pushState(null, null, "/");
+        room_creator.start();
+    };
+
     return {
         init_module: init_module,
         request_to_join_room: request_to_join_room,
         display_join_room_page: display_join_room_page,
         handle_set_name: handle_set_name,
         handle_update_players: handle_update_players,
-        handle_start_game: handle_start_game
+        handle_start_game: handle_start_game,
+        display_bad_room_page: display_bad_room_page,
+        handle_back_to_home_button: handle_back_to_home_button
     };
 }());

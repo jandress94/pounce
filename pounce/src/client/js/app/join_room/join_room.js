@@ -11,6 +11,12 @@ const join_room = (function () {
             start(room_id);
         });
 
+        socket.on('bad_room_id', function(room_id) {
+            console.log('room_id', room_id, 'does not exist');
+
+            join_room.controller.display_bad_room_page(room_id);
+        });
+
         socket.on('confirm_room_join', function(join_data) {
             console.log('received confirmation for joining room', join_data.room_id, 'with name', join_data.player_name);
             app.model.set_room_id(join_data.room_id);
