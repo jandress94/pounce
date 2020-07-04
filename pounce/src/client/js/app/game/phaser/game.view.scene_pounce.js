@@ -6,6 +6,7 @@ game.view.scene_pounce = (function () {
     let CARD_WIDTH = 80;
     let CARD_HEIGHT = 115;
 
+    let DECK_DOWN_IMG = 'cardBack_red5.png';
     let DECK_DOWN_X = 75;
     let DECK_DOWN_Y = 500;
 
@@ -24,6 +25,7 @@ game.view.scene_pounce = (function () {
     let BUILD_BASE_HEIGHT = 100;
 
     let POUNCE_PILE_X = DECK_UP_START_X;
+    let POUNCE_PILE_DELTA = 5;
 
     let CENTER_PILE_START_Y = 50;
     let CENTER_PILE_GAP_Y = 20;
@@ -49,6 +51,7 @@ game.view.scene_pounce = (function () {
     let build_pile_groups;
 
     let pounce_pile_top;
+    let pounce_pile_down_cards;
 
     let current_click;
 
@@ -80,7 +83,7 @@ game.view.scene_pounce = (function () {
             current_click = null;
 
             // create face down card for the deck
-            let deck_down_card = this.add.image(DECK_DOWN_X, DECK_DOWN_Y, 'card_backs', 'cardBack_red5.png');
+            let deck_down_card = this.add.image(DECK_DOWN_X, DECK_DOWN_Y, 'card_backs', DECK_DOWN_IMG);
             deck_down_card.setScale(CARD_WIDTH / deck_down_card.width, CARD_HEIGHT / deck_down_card.height);
             deck_down_card.setInteractive();
 
@@ -112,6 +115,7 @@ game.view.scene_pounce = (function () {
             }
 
             // create pounce pile
+            pounce_pile_down_cards = null;
             create_pounce_card(this);
 
             // create center piles
@@ -290,6 +294,23 @@ game.view.scene_pounce = (function () {
         let pounce_card = game.model.get_first_pounce_card();
         if (pounce_card === null) {
             return;
+        }
+
+        let num_pounce_cards = game.model.get_num_pounce_cards_left();
+
+        if (pounce_pile_down_cards === null) {
+            pounce_pile_down_cards = [];
+            for (let i = num_pounce_cards - 1; i > 0; i--) {
+                let pounce_pile_down = scene.add.image(POUNCE_PILE_X + i * POUNCE_PILE_DELTA,
+                    BUILD_PILE_START_Y, 'card_backs', DECK_DOWN_IMG);
+                pounce_pile_down.setScale(CARD_WIDTH / pounce_pile_down.width, CARD_HEIGHT / pounce_pile_down.height);
+                pounce_pile_down_cards.unshift(pounce_pile_down);
+            }
+        }
+
+        while (pounce_pile_down_cards.length > num_pounce_cards - 1) {
+            let c = pounce_pile_down_cards.pop();
+            c.destroy();
         }
 
         pounce_pile_top = scene.add.image(POUNCE_PILE_X, BUILD_PILE_START_Y, 'cards', card_to_filename(pounce_card));
