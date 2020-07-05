@@ -369,6 +369,10 @@ const handle_request_room_join = function(socket, room_id) {
         socket.join(room_id);
         socket.room_id = room_id;
 
+        if (socket.hasOwnProperty('player_name')){
+            delete socket.player_name;
+        }
+
         room_data[room_id].unnamed_players[socket.id] = socket;
 
         console.log('socket', socket.id, 'joined room', room_id);
