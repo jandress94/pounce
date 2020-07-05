@@ -3,6 +3,7 @@ app.model = (function () {
     let room_id;
     let name;
     let players;
+    let deck_back;
 
     const init_module = function () {
         clear();
@@ -32,10 +33,19 @@ app.model = (function () {
         return players;
     };
 
+    const get_deck_back = function() {
+        return deck_back;
+    };
+
+    const set_deck_back = function(db) {
+        deck_back = db;
+    };
+
     const clear = function () {
         room_id = null;
         name = null;
         players = [];
+        deck_back = null;
     };
 
     const get_id_info = function() {
@@ -53,6 +63,8 @@ app.model = (function () {
         get_name: get_name,
         set_players: set_players,
         get_players: get_players,
+        set_deck_back: set_deck_back,
+        get_deck_back: get_deck_back,
         clear: clear,
         get_id_info: get_id_info
     };

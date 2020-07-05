@@ -6,7 +6,6 @@ game.view.scene_pounce = (function () {
     let CARD_WIDTH = 80;
     let CARD_HEIGHT = 115;
 
-    let DECK_DOWN_IMG = 'cardBack_red5.png';
     let DECK_DOWN_X = 75;
     let DECK_DOWN_Y = 500;
 
@@ -83,7 +82,7 @@ game.view.scene_pounce = (function () {
             current_click = null;
 
             // create face down card for the deck
-            let deck_down_card = this.add.image(DECK_DOWN_X, DECK_DOWN_Y, 'card_backs', DECK_DOWN_IMG);
+            let deck_down_card = this.add.image(DECK_DOWN_X, DECK_DOWN_Y, 'card_backs', app.model.get_deck_back());
             deck_down_card.setScale(CARD_WIDTH / deck_down_card.width, CARD_HEIGHT / deck_down_card.height);
             deck_down_card.setInteractive();
 
@@ -302,7 +301,7 @@ game.view.scene_pounce = (function () {
             pounce_pile_down_cards = [];
             for (let i = num_pounce_cards - 1; i > 0; i--) {
                 let pounce_pile_down = scene.add.image(POUNCE_PILE_X + i * POUNCE_PILE_DELTA,
-                    BUILD_PILE_START_Y, 'card_backs', DECK_DOWN_IMG);
+                    BUILD_PILE_START_Y, 'card_backs', app.model.get_deck_back());
                 pounce_pile_down.setScale(CARD_WIDTH / pounce_pile_down.width, CARD_HEIGHT / pounce_pile_down.height);
                 pounce_pile_down_cards.unshift(pounce_pile_down);
             }

@@ -409,7 +409,6 @@ const create_new_player = function(socket, name) {
 };
 
 const handle_set_name = function(socket, name) {
-    // TODO: race-conditions
     let room = room_data[socket.room_id];
 
     let already_named = socket.hasOwnProperty('player_idx');

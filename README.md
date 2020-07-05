@@ -7,3 +7,7 @@ Start Python webserver:
 
 
 https://code.tutsplus.com/tutorials/create-a-multiplayer-pirate-shooter-game-in-your-browser--cms-23311
+
+## Deploying to glich
+
+zip `src/` and `package.json`

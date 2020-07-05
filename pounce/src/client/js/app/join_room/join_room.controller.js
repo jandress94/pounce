@@ -41,6 +41,10 @@ join_room.controller = (function () {
         room_creator.start();
     };
 
+    const handle_deck_back_change = function (deck_back) {
+        app.model.set_deck_back(deck_back);
+    };
+
     return {
         init_module: init_module,
         request_to_join_room: request_to_join_room,
@@ -49,6 +53,7 @@ join_room.controller = (function () {
         handle_update_players: handle_update_players,
         handle_start_game: handle_start_game,
         display_bad_room_page: display_bad_room_page,
-        handle_back_to_home_button: handle_back_to_home_button
+        handle_back_to_home_button: handle_back_to_home_button,
+        handle_deck_back_change: handle_deck_back_change
     };
 }());

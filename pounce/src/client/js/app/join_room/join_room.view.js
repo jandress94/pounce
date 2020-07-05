@@ -31,7 +31,41 @@ join_room.view = (function () {
         join_room_div.appendChild(title_h1);
         title_h1.appendChild(document.createTextNode("Welcome to Pounce room " + app.model.get_room_id()));
 
-        let set_focus_element = null;
+        /*************************************Set Name*************************************/
+
+        let set_name_div = document.createElement('div');
+        join_room_div.appendChild(set_name_div);
+
+        let set_name_input = document.createElement('input');
+        set_name_div.appendChild(set_name_input);
+
+        let set_name_button = document.createElement('button');
+        set_name_div.appendChild(set_name_button);
+        set_name_button.appendChild(document.createTextNode('Set Name'));
+        $(set_name_button).click(function () {
+            join_room.controller.handle_set_name(set_name_input.value);
+        });
+        set_name_input.addEventListener("keyup", function(event) {
+            if (event.key === "Enter") {
+                join_room.controller.handle_set_name(set_name_input.value);
+            }
+        });
+        let set_focus_element = set_name_input;
+
+        /**********************************Set Card Color**********************************/
+
+        let choose_card_div = document.createElement('div');
+        join_room_div.appendChild(choose_card_div);
+
+        // load the card back xml info
+        let xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState === 4 && this.status === 200) {
+                _create_card_back_selections(this.responseXML, choose_card_div);
+            }
+        };
+        xmlhttp.open("GET", "/assets/imgs/playingCardBacks.xml", true);
+        xmlhttp.send();
 
         /**************************Name Welcome and Start Button**************************/
         if (app.model.get_name() !== null) {
@@ -58,35 +92,63 @@ join_room.view = (function () {
             set_focus_element = start_game_button;
         }
 
-        /*************************************Set Name*************************************/
-
-        let set_name_div = document.createElement('div');
-        join_room_div.appendChild(set_name_div);
-
-        let set_name_input = document.createElement('input');
-        set_name_div.appendChild(set_name_input);
-
-        let set_name_button = document.createElement('button');
-        set_name_div.appendChild(set_name_button);
-        set_name_button.appendChild(document.createTextNode('Set Name'));
-        $(set_name_button).click(function () {
-            join_room.controller.handle_set_name(set_name_input.value);
-        });
-        set_name_input.addEventListener("keyup", function(event) {
-            if (event.key === "Enter") {
-                join_room.controller.handle_set_name(set_name_input.value);
-            }
-        });
-
-        if (set_focus_element === null) {
-            set_focus_element = set_name_input;
-        }
-
         update_player_list(join_room_div);
 
-        if (set_focus_element !== null) {
-            set_focus_element.focus();
+        set_focus_element.focus();
+    };
+
+    const _create_card_back_selections = function(xml, div) {
+        let title_h2 = document.createElement('h2');
+        div.appendChild(title_h2);
+        title_h2.appendChild(document.createTextNode('Select Deck'));
+
+        let cards_div = document.createElement('div');
+        div.appendChild(cards_div);
+
+        let subimgs = xml.getElementsByTagName("SubTexture");
+
+        let subimg_lookup = {};
+        for (let i = 0; i < subimgs.length; i++) {
+            subimg_lookup[subimgs[i].attributes.name.nodeValue] = subimgs[i].attributes;
         }
+
+        let has_deck = app.model.get_deck_back() !== null;
+        for (let i = 0; i < constants.ENABLED_DECKS.length; i++) {
+            if (!subimg_lookup.hasOwnProperty(constants.ENABLED_DECKS[i])) {
+                continue;
+            }
+
+            let subimg = subimg_lookup[constants.ENABLED_DECKS[i]];
+
+            let label = document.createElement('label');
+            cards_div.appendChild(label);
+
+            let radio = document.createElement('input');
+            label.appendChild(radio);
+            radio.setAttribute("type", "radio");
+            radio.setAttribute("id", subimg.name.nodeValue);
+            radio.setAttribute("name", "deck_back");
+            radio.setAttribute('value', subimg.name.nodeValue);
+            if (!has_deck || app.model.get_deck_back() === subimg.name.nodeValue) {
+                has_deck = true;
+                radio.setAttribute('checked', 'true');
+                join_room.controller.handle_deck_back_change(subimg.name.nodeValue);
+            }
+
+            let img_div = document.createElement('div');
+            label.appendChild(img_div);
+            img_div.setAttribute('style', "display: inline-block; overflow: hidden; width: " +
+                subimg.width.nodeValue + "px; height: " + subimg.height.nodeValue + "px; margin: 10px;");
+
+            let img = document.createElement('img');
+            img_div.appendChild(img);
+            img.setAttribute('src', "/assets/imgs/playingCardBacks.png");
+            img.setAttribute('style', "position: relative; left: -" + subimg.x.nodeValue + "px; top: -" + subimg.y.nodeValue + "px;");
+        }
+
+        $('input:radio[name="deck_back"]').change(function() {
+            join_room.controller.handle_deck_back_change($(this).val());
+        });
     };
 
     const update_player_list = function (player_list_container) {
