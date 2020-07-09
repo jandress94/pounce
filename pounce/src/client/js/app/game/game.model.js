@@ -114,7 +114,8 @@ game.model = (function () {
             refresh_data.refresh_pounce = true;
             check_for_win();
         } else if (move_type === 'deck_up_card') {
-            if (!is_valid_build(build_pile_idx, deck[1][0])) {
+            if ((refresh_data.refresh_ditch !== null && refresh_data.refresh_ditch.ditch_occurred) || !is_valid_build(build_pile_idx, deck[1][0])) {
+                // if there was just a ditch and the view hasn't yet registered it or if invalid, don't allow move to build from deck
                 return false;
             }
 
@@ -138,7 +139,7 @@ game.model = (function () {
 
     const check_reset_ditch = function() {
         if (ready_for_ditch) {
-            set_ditch(false);
+            set_ditch(false, false);
         }
     };
 
@@ -148,6 +149,11 @@ game.model = (function () {
         if (move_type === 'pounce_pile') {
             move_card = pounce_pile[0];
         } else if (move_type === 'deck_up_card') {
+            if (refresh_data.refresh_ditch !== null && refresh_data.refresh_ditch.ditch_occurred) {
+                // if there was just a ditch and the view hasn't yet registered it, don't allow move to center from deck
+                return false;
+            }
+
             move_card = deck[1][0];
         } else if (move_type === 'build_pile') {
             let move_build_pile_idx = move_metadata.build_pile_idx;
@@ -184,7 +190,7 @@ game.model = (function () {
     };
 
     const process_center_click_metadata = function (accepted) {
-        if (accepted) {
+        if (accepted && center_click_metadata !== null) {
             let move_type = center_click_metadata.clicked_obj_type;
             if (move_type === 'pounce_pile') {
                 pounce_pile.shift();
@@ -218,9 +224,12 @@ game.model = (function () {
         refresh_data.refresh_center_pile_ids.push(center_pile_coords);
     };
 
-    const set_ditch = function(val, should_handle_change=true) {
+    const set_ditch = function(val, ditch_occurred, should_handle_change=true) {
         ready_for_ditch = val;
-        refresh_data.refresh_ditch = ready_for_ditch;
+        refresh_data.refresh_ditch = {
+            ditch_status: ready_for_ditch,
+            ditch_occurred: ditch_occurred
+        };
 
         if (should_handle_change) {
             game.controller.handle_ditch_changed(ready_for_ditch);
@@ -228,11 +237,13 @@ game.model = (function () {
     };
 
     const flip_ditch = function() {
-        set_ditch(!ready_for_ditch);
+        set_ditch(!ready_for_ditch, false);
     };
 
     const ditch = function() {
-        set_ditch(false, false);
+        set_ditch(false, true, false);
+
+        center_click_metadata = null;
 
         deck[1].reverse();
         deck[0] = deck[1].concat(deck[0]);

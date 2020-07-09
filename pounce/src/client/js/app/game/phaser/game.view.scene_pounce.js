@@ -279,11 +279,17 @@ game.view.scene_pounce = (function () {
             }
 
             if (refresh_data.refresh_ditch !== null) {
-                if (refresh_data.refresh_ditch) {
+                if (refresh_data.refresh_ditch.ditch_status) {
                     ditch_button.setTint(DITCH_SELECTED_TINT);
                 } else {
                     ditch_button.setTint(DITCH_UNSELECTED_TINT);
                 }
+
+                if (refresh_data.refresh_ditch.ditch_occurred && current_click !== null && current_click.click_metadata.clicked_obj_type === 'deck_up_card') {
+                    console.log('clearing click after pounce');
+                    clean_current_click();
+                }
+
                 refresh_data.refresh_ditch = null;
             }
         }
