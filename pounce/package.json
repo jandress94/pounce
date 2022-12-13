@@ -7,7 +7,7 @@
     "start": "node src/server/server.js"
   },
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "shuffle-array": "^1.0.1",
     "socket.io": "^2.3.0"
   },
